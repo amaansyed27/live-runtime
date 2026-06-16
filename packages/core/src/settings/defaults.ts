@@ -7,7 +7,7 @@ export interface RuntimeSettings {
 
 export const defaultRuntimeSettings: RuntimeSettings = {
   providerBaseUrl: "http://localhost:11434",
-  defaultModel: "llama3.2",
+  defaultModel: "qwen3.5:9b",
   speakResponses: true,
   temperature: 0.7
 };
