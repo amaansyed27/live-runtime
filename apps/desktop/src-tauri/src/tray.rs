@@ -8,7 +8,7 @@ pub fn setup(app: &mut App) -> tauri::Result<()> {
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open, &speak, &quit])?;
 
-    TrayIconBuilder::new()
+    let mut tray = TrayIconBuilder::new()
         .tooltip("Live Runtime")
         .menu(&menu)
         .show_menu_on_left_click(true)
@@ -29,9 +29,13 @@ pub fn setup(app: &mut App) -> tauri::Result<()> {
             {
                 show_window(&tray.app_handle());
             }
-        })
-        .build(app)?;
+        });
 
+    if let Some(icon) = app.default_window_icon() {
+        tray = tray.icon(icon.clone());
+    }
+
+    tray.build(app)?;
     Ok(())
 }
 
