@@ -33,7 +33,7 @@ docs/
 - At least one Ollama model pulled. The default is currently:
 
 ```bash
-ollama pull qwen3.5:9b
+ollama pull qwen3.5:4b
 ```
 
 You can use any model installed in Ollama. The dashboard discovers local models from Ollama and lets you switch models from the sidebar.
