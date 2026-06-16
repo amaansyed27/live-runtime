@@ -44,3 +44,15 @@ export async function stopSpeech(): Promise<void> {
 export async function hideToTray(): Promise<void> {
   if (isTauriRuntime()) await invoke("hide_to_tray");
 }
+
+export async function showCompanion(): Promise<void> {
+  if (isTauriRuntime()) await invoke("show_companion");
+}
+
+export async function hideCompanion(): Promise<void> {
+  if (isTauriRuntime()) await invoke("hide_companion");
+}
+
+export async function toggleCompanion(): Promise<void> {
+  if (isTauriRuntime()) await invoke("toggle_companion");
+}
