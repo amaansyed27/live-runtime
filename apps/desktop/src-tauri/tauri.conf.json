@@ -4,9 +4,16 @@
   "version": "0.1.0",
   "identifier": "dev.live-runtime.desktop",
   "build": {
-    "beforeDevCommand": "pnpm --dir ../dashboard dev --host 127.0.0.1",
+    "beforeDevCommand": {
+      "cwd": "../../dashboard",
+      "script": "pnpm dev",
+      "wait": false
+    },
     "devUrl": "http://127.0.0.1:1420",
-    "beforeBuildCommand": "pnpm --dir ../dashboard build",
+    "beforeBuildCommand": {
+      "cwd": "../../dashboard",
+      "script": "pnpm build"
+    },
     "frontendDist": "../../dashboard/dist"
   },
   "app": {
