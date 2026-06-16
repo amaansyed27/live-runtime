@@ -1,6 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod commands;
+mod runtime;
 mod speech;
 mod tray;
 
@@ -12,24 +12,15 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::runtime_status,
-            commands::speak_text,
-            commands::stop_speech,
-            commands::hide_to_tray,
-            commands::show_dashboard,
-            commands::show_companion,
-            commands::hide_companion,
-            commands::toggle_companion,
-            commands::perform_desktop_action
+            runtime::runtime_status,
+            runtime::speak_text,
+            runtime::stop_speech,
+            runtime::hide_to_tray,
+            runtime::show_dashboard,
+            runtime::show_companion,
+            runtime::hide_companion,
+            runtime::toggle_companion
         ])
-        .on_window_event(|window, event| {
-            if matches!(window.label(), "main" | "companion") {
-                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                    api.prevent_close();
-                    let _ = window.hide();
-                }
-            }
-        })
         .run(tauri::generate_context!())
         .expect("error while running Live Runtime");
 }
