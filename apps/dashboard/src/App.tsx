@@ -24,31 +24,29 @@ export function App() {
 
   if (windowLabel === "companion") {
     return (
-      <main className={`companion-shell ${collapsed ? "is-collapsed" : ""}`}>
-        <header className="companion-head">
-          <div className="brand-block brand-compact">
-            <img className="brand-mark" src="/live-runtime-logo.svg" alt="Live Runtime logo" />
-            <div>
-              <p>Live Runtime</p>
-              <small>Always-on-top companion</small>
-            </div>
-          </div>
-          <div className="companion-controls">
-            <button type="button" onClick={() => setCollapsed((value) => !value)}>{collapsed ? "Open" : "Collapse"}</button>
-            <button type="button" onClick={() => void hideCompanion()}>Hide</button>
+      <main className="sidebar glass-panel">
+        <header className="brand-block">
+          <img className="brand-mark" src="/live-runtime-logo.svg" alt="Live Runtime logo" />
+          <div>
+            <p>Live Runtime</p>
+            <small>Always-on-top companion</small>
           </div>
         </header>
+        <div className="sidebar-actions">
+          <button type="button" onClick={() => setCollapsed((value) => !value)}>{collapsed ? "Open" : "Collapse"}</button>
+          <button type="button" onClick={() => void hideCompanion()}>Hide</button>
+        </div>
         {!collapsed && (
           <>
-            <section className="intent-panel intent-panel-compact">
-              <strong>Command center</strong>
-              <p>Use this companion to chat, plan actions, and keep context visible.</p>
+            <section className="signal-card signal-good">
+              <span>Command center</span>
+              <strong>Chat, dictate, plan actions</strong>
             </section>
-            <section className="mini-conversation">
+            <section className="conversation" aria-label="Recent companion chat">
               {chat.messages.slice(-4).map((message) => <MessageBubble key={message.id} message={message} />)}
             </section>
             <ChatComposer disabled={chat.isLoading} onSend={chat.send} />
-            <button className="new-chat-wide" type="button" onClick={chat.clear}>New chat</button>
+            <button type="button" onClick={chat.clear}>New chat</button>
           </>
         )}
       </main>
@@ -119,9 +117,9 @@ export function App() {
           </div>
         </header>
 
-        <section className="intent-panel">
-          <strong>Command center</strong>
-          <p>Use chat to plan actions. Secure native automation will be layered behind approvals.</p>
+        <section className="signal-card signal-good">
+          <span>Command center</span>
+          <strong>Secure automation approvals will be added next.</strong>
         </section>
 
         {chat.error && <div className="error-banner">{chat.error}</div>}
