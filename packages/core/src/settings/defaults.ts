@@ -7,7 +7,7 @@ export interface RuntimeSettings {
 
 export const defaultRuntimeSettings: RuntimeSettings = {
   providerBaseUrl: "http://localhost:11434",
-  defaultModel: "qwen3.5:9b",
+  defaultModel: "qwen3.5:4b",
   speakResponses: true,
   temperature: 0.7
 };
