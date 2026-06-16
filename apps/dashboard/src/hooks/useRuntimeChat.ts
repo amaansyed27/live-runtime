@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OllamaClient, createMessage, defaultRuntimeSettings, type ChatMessage, type ModelInfo } from "@live-runtime/core";
 import { speakText } from "../lib/tauriBridge";
 
+const CHAT_STORAGE_KEY = "live-runtime.chat.messages";
+
 export interface RuntimeChatState {
   messages: ChatMessage[];
   models: ModelInfo[];
@@ -19,9 +21,7 @@ export interface RuntimeChatState {
 }
 
 export function useRuntimeChat(): RuntimeChatState {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    createMessage("assistant", "Live Runtime is ready. Start Ollama, choose a model, then speak or type a message.")
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => readStoredMessages());
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [model, setModel] = useState(defaultRuntimeSettings.defaultModel);
   const [baseUrl, setBaseUrl] = useState(defaultRuntimeSettings.providerBaseUrl);
@@ -31,6 +31,10 @@ export function useRuntimeChat(): RuntimeChatState {
   const abortRef = useRef<AbortController | null>(null);
 
   const client = useMemo(() => new OllamaClient({ baseUrl }), [baseUrl]);
+
+  useEffect(() => {
+    window.localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
 
   const reloadModels = useCallback(async () => {
     try {
@@ -70,7 +74,7 @@ export function useRuntimeChat(): RuntimeChatState {
         model,
         signal: abort.signal,
         messages: [
-          { role: "system", content: "You are Live Runtime, a concise local AI companion running through Ollama." },
+          { role: "system", content: "You are Live Runtime, a concise local AI companion running through Ollama. Maintain context from the existing conversation until the user starts a new chat." },
           ...history,
           userMessage
         ],
@@ -95,6 +99,12 @@ export function useRuntimeChat(): RuntimeChatState {
     }
   }, [client, isLoading, messages, model, speakResponses]);
 
+  const clear = useCallback(() => {
+    const fresh = [createMessage("assistant", "New chat started. What should we work on?")];
+    setMessages(fresh);
+    window.localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(fresh));
+  }, []);
+
   return {
     messages,
     models,
@@ -108,6 +118,17 @@ export function useRuntimeChat(): RuntimeChatState {
     setSpeakResponses,
     reloadModels,
     send,
-    clear: () => setMessages([])
+    clear
   };
+}
+
+function readStoredMessages(): ChatMessage[] {
+  try {
+    const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
+    if (!raw) return [createMessage("assistant", "Live Runtime is ready. Start Ollama, choose a model, then speak or type a message.")];
+    const parsed = JSON.parse(raw) as ChatMessage[];
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [createMessage("assistant", "Live Runtime is ready.")];
+  } catch {
+    return [createMessage("assistant", "Live Runtime is ready.")];
+  }
 }
