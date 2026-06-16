@@ -30,11 +30,13 @@ docs/
 - pnpm 10+
 - Rust stable
 - Ollama installed and running locally
-- At least one Ollama model pulled, for example:
+- At least one Ollama model pulled. The default is currently:
 
 ```bash
-ollama pull llama3.2
+ollama pull qwen3.5:9b
 ```
+
+You can use any model installed in Ollama. The dashboard discovers local models from Ollama and lets you switch models from the sidebar.
 
 ## Install
 
