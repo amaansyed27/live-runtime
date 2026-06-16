@@ -2,6 +2,7 @@ use serde::Serialize;
 use tauri::{AppHandle, Manager};
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RuntimeStatus {
     platform: String,
     arch: String,
