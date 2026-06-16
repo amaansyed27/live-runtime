@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Live Runtime",
+  "version": "0.1.0",
+  "identifier": "dev.live-runtime.desktop",
+  "build": {
+    "beforeDevCommand": "pnpm --dir ../dashboard dev --host 127.0.0.1",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "pnpm --dir ../dashboard build",
+    "frontendDist": "../dashboard/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Live Runtime",
+        "width": 1180,
+        "height": 780,
+        "minWidth": 920,
+        "minHeight": 640,
+        "center": true,
+        "decorations": true,
+        "resizable": true,
+        "visible": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' http://localhost:11434 http://127.0.0.1:11434; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "DeveloperTool",
+    "shortDescription": "Tray-native local AI runtime powered by Ollama"
+  }
+}
