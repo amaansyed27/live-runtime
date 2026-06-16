@@ -6,13 +6,13 @@
   "build": {
     "beforeDevCommand": {
       "cwd": "../../dashboard",
-      "script": "pnpm dev",
+      "script": "npm run dev",
       "wait": false
     },
     "devUrl": "http://127.0.0.1:1420",
     "beforeBuildCommand": {
       "cwd": "../../dashboard",
-      "script": "pnpm build"
+      "script": "npm run build"
     },
     "frontendDist": "../../dashboard/dist"
   },
