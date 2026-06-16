@@ -17,7 +17,7 @@ export function App() {
     <main className="app-shell">
       <aside className="sidebar glass-panel">
         <div className="brand-block">
-          <span className="brand-mark">LR</span>
+          <img className="brand-mark" src="/live-runtime-logo.svg" alt="Live Runtime logo" />
           <div>
             <p>Live Runtime</p>
             <small>Local Ollama companion</small>
