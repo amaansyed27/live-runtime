@@ -7,7 +7,7 @@
     "beforeDevCommand": "pnpm --dir ../dashboard dev --host 127.0.0.1",
     "devUrl": "http://127.0.0.1:1420",
     "beforeBuildCommand": "pnpm --dir ../dashboard build",
-    "frontendDist": "../dashboard/dist"
+    "frontendDist": "../../dashboard/dist"
   },
   "app": {
     "windows": [
