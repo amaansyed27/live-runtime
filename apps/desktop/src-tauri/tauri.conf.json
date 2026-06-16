@@ -38,6 +38,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "icon": [
+      "icons/icon.ico"
+    ],
     "category": "DeveloperTool",
     "shortDescription": "Tray-native local AI runtime powered by Ollama"
   }
