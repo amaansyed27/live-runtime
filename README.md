@@ -27,7 +27,7 @@ docs/
 ## Requirements
 
 - Node.js 20+
-- pnpm 10+
+- npm 10+
 - Rust stable
 - Ollama installed and running locally
 - At least one Ollama model pulled. The default is currently:
@@ -41,19 +41,19 @@ You can use any model installed in Ollama. The dashboard discovers local models 
 ## Install
 
 ```bash
-pnpm install
+npm install
 ```
 
 ## Run dashboard only
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 ## Run desktop app with tray
 
 ```bash
-pnpm desktop
+npm run desktop
 ```
 
 The desktop app starts the dashboard inside a Tauri window. Closing the window hides it to the system tray instead of quitting.
@@ -61,8 +61,8 @@ The desktop app starts the dashboard inside a Tauri window. Closing the window h
 ## Build
 
 ```bash
-pnpm build
-pnpm --filter @live-runtime/desktop tauri build
+npm run build
+npm run build --workspace @live-runtime/desktop
 ```
 
 ## Current voice behavior
