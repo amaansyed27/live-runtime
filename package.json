@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "pnpm --filter @live-runtime/dashboard dev",
     "desktop": "pnpm --filter @live-runtime/desktop dev",
-    "build": "pnpm -r build",
+    "build": "pnpm --filter @live-runtime/core build && pnpm --filter @live-runtime/dashboard build",
     "check": "pnpm -r check"
   },
   "devDependencies": {
