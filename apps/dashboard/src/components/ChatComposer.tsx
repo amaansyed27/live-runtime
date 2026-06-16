@@ -12,12 +12,16 @@ export function ChatComposer({ disabled, onSend }: ChatComposerProps) {
   const [isListening, setIsListening] = useState(false);
   const recognition = useMemo(() => createBrowserSpeechRecognition(), []);
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
+  async function sendCurrentInput() {
     const content = input.trim();
     if (!content) return;
     setInput("");
     await onSend(content);
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await sendCurrentInput();
   }
 
   function toggleListening() {
@@ -60,7 +64,7 @@ export function ChatComposer({ disabled, onSend }: ChatComposerProps) {
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();
-              void submit(event);
+              void sendCurrentInput();
             }
           }}
         />
