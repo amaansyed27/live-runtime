@@ -2,12 +2,16 @@
   "name": "live-runtime",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.12.1",
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "pnpm --filter @live-runtime/dashboard dev",
-    "desktop": "pnpm --filter @live-runtime/desktop dev",
-    "build": "pnpm --filter @live-runtime/core build && pnpm --filter @live-runtime/dashboard build",
-    "check": "pnpm -r check"
+    "dev": "npm run dev --workspace @live-runtime/dashboard",
+    "desktop": "npm run dev --workspace @live-runtime/desktop",
+    "build": "npm run build --workspace @live-runtime/core && npm run build --workspace @live-runtime/dashboard",
+    "check": "npm run check --workspaces"
   },
   "devDependencies": {
     "typescript": "^5.8.3"
