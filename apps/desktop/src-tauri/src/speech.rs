@@ -30,7 +30,7 @@ pub fn speak(text: &str) -> Result<(), String> {
 
     #[cfg(target_os = "windows")]
     {
-        let escaped = text.replace(''\'', "''");
+        let escaped = text.replace('\'', "''");
         let script = format!(
             "Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.Speak('{}')",
             escaped
