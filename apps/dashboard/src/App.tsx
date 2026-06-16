@@ -6,12 +6,15 @@ import { SignalCard } from "./components/SignalCard";
 import { getRuntimeStatus, hideCompanion, hideToTray, showCompanion, stopSpeech } from "./lib/tauriBridge";
 import { useRuntimeChat } from "./hooks/useRuntimeChat";
 
+const COMPANION_ENABLED_KEY = "live-runtime.companion.enabled";
+
 export function App() {
   const chat = useRuntimeChat();
   const [status, setStatus] = useState({ platform: "loading", arch: "-", speechOutput: "-", trayEnabled: false });
   const [windowLabel, setWindowLabel] = useState("main");
   const [collapsed, setCollapsed] = useState(false);
   const [shortcut, setShortcut] = useState(() => window.localStorage.getItem("live-runtime.shortcut") ?? "Ctrl+Shift+Space");
+  const [companionEnabled, setCompanionEnabled] = useState(() => window.localStorage.getItem(COMPANION_ENABLED_KEY) === "true");
 
   useEffect(() => {
     void getRuntimeStatus().then(setStatus);
@@ -21,6 +24,13 @@ export function App() {
   useEffect(() => {
     window.localStorage.setItem("live-runtime.shortcut", shortcut);
   }, [shortcut]);
+
+  useEffect(() => {
+    window.localStorage.setItem(COMPANION_ENABLED_KEY, String(companionEnabled));
+    if (windowLabel === "main") {
+      void (companionEnabled ? showCompanion() : hideCompanion());
+    }
+  }, [companionEnabled, windowLabel]);
 
   if (windowLabel === "companion") {
     return (
@@ -80,6 +90,13 @@ export function App() {
           </select>
         </section>
 
+        <section className="side-section toggles">
+          <label>
+            <input type="checkbox" checked={companionEnabled} onChange={(event) => setCompanionEnabled(event.target.checked)} />
+            Companion window
+          </label>
+        </section>
+
         <section className="side-section">
           <label htmlFor="shortcut">Companion shortcut</label>
           <input id="shortcut" value={shortcut} onChange={(event) => setShortcut(event.target.value)} />
@@ -101,7 +118,7 @@ export function App() {
         </div>
 
         <div className="sidebar-actions stacked-actions">
-          <button type="button" onClick={() => void showCompanion()}>Show companion</button>
+          <button type="button" onClick={() => setCompanionEnabled((value) => !value)}>{companionEnabled ? "Disable companion" : "Enable companion"}</button>
           <button type="button" onClick={chat.clear}>New chat</button>
           <button type="button" onClick={() => void stopSpeech()}>Stop speech</button>
           <button type="button" onClick={() => void hideToTray()}>Hide</button>
