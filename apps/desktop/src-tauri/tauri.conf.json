@@ -21,13 +21,29 @@
       {
         "label": "main",
         "title": "Live Runtime",
-        "width": 1180,
-        "height": 780,
-        "minWidth": 920,
-        "minHeight": 640,
+        "width": 460,
+        "height": 720,
+        "minWidth": 380,
+        "minHeight": 560,
         "center": true,
         "decorations": true,
         "resizable": true,
+        "visible": true
+      },
+      {
+        "label": "companion",
+        "title": "Live Runtime Companion",
+        "width": 360,
+        "height": 440,
+        "minWidth": 320,
+        "minHeight": 96,
+        "center": false,
+        "x": 40,
+        "y": 120,
+        "decorations": false,
+        "resizable": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
         "visible": true
       }
     ],
