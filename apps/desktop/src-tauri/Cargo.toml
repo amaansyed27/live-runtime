@@ -5,10 +5,6 @@ description = "Tray-native local AI runtime powered by Ollama"
 authors = ["Amaan Syed"]
 edition = "2021"
 
-[lib]
-name = "live_runtime_desktop_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
-
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
