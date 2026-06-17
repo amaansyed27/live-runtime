@@ -3,5 +3,11 @@
   "identifier": "default",
   "description": "Default permissions for the Live Runtime dashboard and companion windows.",
   "windows": ["main", "companion"],
-  "permissions": ["core:default", "opener:default"]
+  "permissions": [
+    "core:default",
+    "core:window:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-minimize",
+    "opener:default"
+  ]
 }
