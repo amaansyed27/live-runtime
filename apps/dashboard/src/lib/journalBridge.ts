@@ -9,6 +9,23 @@ export interface JournalDraft {
   source: string;
   confidence?: number;
   tags?: string[];
+  embeddingModel?: string;
+  vector?: number[];
+}
+
+export interface JournalRecord {
+  id: string;
+  kind: string;
+  scope: string;
+  title: string;
+  content: string;
+  source: string;
+  confidence: number;
+  tags: string[];
+  embeddingModel?: string;
+  vector?: number[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface JournalStatus {
@@ -16,11 +33,17 @@ export interface JournalStatus {
   memoryCount: number;
   profileCount: number;
   skillCount: number;
+  vectorCount: number;
 }
 
 export async function saveJournal(draft: JournalDraft): Promise<void> {
   if (!isTauriRuntime()) return;
   await invoke("save_memory", { draft });
+}
+
+export async function listJournal(limit = 120): Promise<JournalRecord[]> {
+  if (!isTauriRuntime()) return [];
+  return invoke<JournalRecord[]>("list_memories", { limit });
 }
 
 export async function getJournalStatus(): Promise<JournalStatus | null> {
