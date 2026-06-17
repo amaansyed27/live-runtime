@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OllamaClient, createMessage, defaultRuntimeSettings, type ChatMessage, type ModelInfo } from "@live-runtime/core";
 import { speakText } from "../lib/tauriBridge";
-import { saveEntry } from "../lib/semantic";
+import { saveEntry, relatedEntries, type ScoredJournalRecord } from "../lib/semantic";
 
 const KEY = "live-runtime.chat.messages";
 
@@ -61,6 +61,9 @@ export function useRuntimeChat(): RuntimeChatState {
     setIsLoading(true);
     setError(null);
 
+    const notes = await relatedEntries(baseUrl, text, 6);
+    const noteMessage = notes.length > 0 ? createMessage("assistant", summarizeNotes(notes)) : null;
+
     void saveEntry(baseUrl, { kind: "chat", scope: "longTerm", title: "User message", content: text, source: "chat:user", confidence: 1, tags: ["chat", "user"] });
 
     let reply = "";
@@ -71,6 +74,7 @@ export function useRuntimeChat(): RuntimeChatState {
         messages: [
           { role: "system", content: "You are Live Runtime, a concise local AI companion running through Ollama." },
           ...history,
+          ...(noteMessage ? [noteMessage] : []),
           userMessage
         ],
         temperature: defaultRuntimeSettings.temperature
@@ -98,6 +102,11 @@ export function useRuntimeChat(): RuntimeChatState {
   }, []);
 
   return { messages, models, model, baseUrl, isLoading, error, speakResponses, setModel, setBaseUrl, setSpeakResponses, reloadModels, send, clear };
+}
+
+function summarizeNotes(items: ScoredJournalRecord[]): string {
+  const lines = items.map((item, index) => `${index + 1}. ${item.record.content.replace(/\s+/g, " ").slice(0, 220)}`);
+  return `Relevant previous notes:\n${lines.join("\n")}`;
 }
 
 function readStoredMessages(): ChatMessage[] {
