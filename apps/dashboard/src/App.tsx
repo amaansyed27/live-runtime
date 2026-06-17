@@ -25,18 +25,18 @@ interface AutomationItem {
 
 const automationExamples = [
   {
-    title: "Morning news report",
-    prompt: "Give me a concise news report with tech, AI, India, and world headlines.",
-    schedule: "Every day at 8:00 AM"
+    title: "Morning brief",
+    prompt: "Give me a short news brief with tech, AI, India, and world headlines.",
+    schedule: "Every day at 8 AM"
   },
   {
-    title: "World Cup updates",
-    prompt: "Keep me posted on goal updates, major news, injuries, and match context from the ongoing FIFA World Cup.",
+    title: "World Cup alerts",
+    prompt: "Send major goal updates, match news, injuries, and context from the FIFA World Cup.",
     schedule: "When major updates happen"
   },
   {
-    title: "Documentation cleanup",
-    prompt: "Review my project notes and convert rough notes into clean markdown documentation.",
+    title: "Docs cleanup",
+    prompt: "Turn rough project notes into clean markdown documentation.",
     schedule: "On demand"
   }
 ];
@@ -94,21 +94,21 @@ export function App() {
         <header className="floating-titlebar" data-tauri-drag-region>
           <Brand label="Companion" compact />
           <div className="titlebar-actions">
-            <button type="button" onClick={() => setCollapsed((value) => !value)}>{collapsed ? "Open" : "—"}</button>
-            <button type="button" onClick={() => void hideCompanion()}>×</button>
+            <button type="button" title="Collapse companion" onClick={() => setCollapsed((value) => !value)}>{collapsed ? "Open" : "—"}</button>
+            <button type="button" title="Hide companion" onClick={() => void hideCompanion()}>×</button>
           </div>
         </header>
         {!collapsed && (
           <section className="floating-body">
             <div className="mini-status">
-              <span>Command center</span>
-              <strong>Chat, dictate, plan actions</strong>
+              <span>Ready</span>
+              <strong>Ask or dictate</strong>
             </div>
             <section className="mini-conversation" aria-label="Recent companion chat">
               {chat.messages.slice(-4).map((message) => <MessageBubble key={message.id} message={message} />)}
             </section>
             <ChatComposer disabled={chat.isLoading} onSend={chat.send} />
-            <button type="button" onClick={chat.clear}>New chat</button>
+            <button type="button" title="Clear this conversation" onClick={chat.clear}>New chat</button>
           </section>
         )}
       </main>
@@ -120,16 +120,16 @@ export function App() {
       <header className="custom-titlebar" data-tauri-drag-region>
         <Brand label="Live Runtime" />
         <div className="titlebar-actions">
-          <button type="button" onClick={() => void getCurrentWindow().minimize()}>—</button>
-          <button type="button" onClick={() => void hideToTray()}>×</button>
+          <button type="button" title="Minimize" onClick={() => void getCurrentWindow().minimize()}>—</button>
+          <button type="button" title="Hide to tray" onClick={() => void hideToTray()}>×</button>
         </div>
       </header>
 
       <section className="app-body">
         <nav className="page-rail" aria-label="Main sections">
-          <button className={page === "chat" ? "active" : ""} type="button" onClick={() => setPage("chat")}>Chat</button>
-          <button className={page === "settings" ? "active" : ""} type="button" onClick={() => setPage("settings")}>Settings</button>
-          <button className={page === "automation" ? "active" : ""} type="button" onClick={() => setPage("automation")}>Automations</button>
+          <button className={page === "chat" ? "active" : ""} type="button" title="Chat with your local model" onClick={() => setPage("chat")}>Chat</button>
+          <button className={page === "settings" ? "active" : ""} type="button" title="Change model, theme, voice, and companion" onClick={() => setPage("settings")}>Settings</button>
+          <button className={page === "automation" ? "active" : ""} type="button" title="Create scheduled prompts and routines" onClick={() => setPage("automation")}>Routines</button>
         </nav>
 
         {page === "chat" && <ChatPage chat={chat} />}
@@ -168,21 +168,25 @@ function Brand({ label, compact = false }: { label: string; compact?: boolean })
       <img className="brand-mark" src="/live-runtime-logo.svg" alt="Live Runtime logo" />
       <div>
         <p>{label}</p>
-        <small>Local Ollama runtime</small>
+        <small>Local AI</small>
       </div>
     </div>
   );
+}
+
+function Tip({ text }: { text: string }) {
+  return <span className="tip" title={text}>?</span>;
 }
 
 function ChatPage({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) {
   return (
     <section className="page-panel chat-page">
       <div className="page-hero">
-        <p className="eyebrow">Jarvis-style local runtime</p>
-        <h1>Small desktop AI companion.</h1>
-        <span>Context persists until New chat. Skills and automations stay outside the system prompt.</span>
+        <p className="eyebrow">Local AI</p>
+        <h1>Ask anything.</h1>
+        <span>Saved until New chat.</span>
       </div>
-      {chat.error && <div className="error-banner">{chat.error}</div>}
+      {chat.error && <div className="error-banner">Failed to connect. Is Ollama running?</div>}
       <section className="conversation" aria-label="Conversation">
         {chat.messages.map((message) => <MessageBubble key={message.id} message={message} />)}
       </section>
@@ -222,13 +226,13 @@ function SettingsPage({
     <section className="page-panel settings-page">
       <div className="page-header">
         <p className="eyebrow">Settings</p>
-        <h2>Runtime controls</h2>
+        <h2>Preferences</h2>
       </div>
 
       <div className="settings-grid">
         <section className="settings-card">
-          <label htmlFor="theme">Theme</label>
-          <select id="theme" value={theme} onChange={(event) => setTheme(event.target.value as ThemeMode)}>
+          <label htmlFor="theme">Theme <Tip text="System follows your OS theme." /></label>
+          <select id="theme" value={theme} onChange={(event) => setTheme(event.target.value as ThemeMode)} title="Choose app theme">
             <option value="system">System</option>
             <option value="light">Light</option>
             <option value="dark">Dark mint</option>
@@ -236,57 +240,54 @@ function SettingsPage({
         </section>
 
         <section className="settings-card">
-          <label htmlFor="baseUrl">Provider URL</label>
-          <input id="baseUrl" value={chat.baseUrl} onChange={(event) => chat.setBaseUrl(event.target.value)} />
+          <label htmlFor="baseUrl">Ollama URL <Tip text="Default local Ollama server." /></label>
+          <input id="baseUrl" title="Ollama server URL" value={chat.baseUrl} onChange={(event) => chat.setBaseUrl(event.target.value)} />
         </section>
 
         <section className="settings-card">
           <div className="section-title-row">
-            <label htmlFor="model">Model</label>
-            <button type="button" onClick={() => void chat.reloadModels()}>Refresh</button>
+            <label htmlFor="model">Model <Tip text="Pick an installed Ollama model." /></label>
+            <button type="button" title="Reload installed models" onClick={() => void chat.reloadModels()}>Refresh</button>
           </div>
-          <select id="model" value={chat.model} onChange={(event) => chat.setModel(event.target.value)}>
+          <select id="model" value={chat.model} onChange={(event) => chat.setModel(event.target.value)} title="Selected model">
             {chat.models.length === 0 && <option value={chat.model}>{chat.model}</option>}
             {chat.models.map((model) => <option key={model.name} value={model.name}>{model.name}</option>)}
           </select>
         </section>
 
         <section className="settings-card toggle-card">
-          <label>
+          <label title="Show or hide the floating companion window">
             <input type="checkbox" checked={companionEnabled} onChange={(event) => setCompanionEnabled(event.target.checked)} />
-            Companion window
+            Companion <Tip text="Floating mini chat window." />
           </label>
-          <button type="button" onClick={() => setCompanionEnabled((value) => !value)}>{companionEnabled ? "Disable companion" : "Enable companion"}</button>
+          <button type="button" title="Toggle companion window" onClick={() => setCompanionEnabled((value) => !value)}>{companionEnabled ? "Disable" : "Enable"}</button>
         </section>
 
         <section className="settings-card">
-          <label htmlFor="shortcut">Companion shortcut</label>
-          <input id="shortcut" value={shortcut} onChange={(event) => setShortcut(event.target.value)} />
-          <small>Saved locally. Native global registration is next.</small>
+          <label htmlFor="shortcut">Shortcut <Tip text="Saved now. Global shortcut wiring comes next." /></label>
+          <input id="shortcut" title="Companion shortcut" value={shortcut} onChange={(event) => setShortcut(event.target.value)} />
         </section>
 
         <section className="settings-card toggle-card">
-          <label>
+          <label title="Launch setting is saved locally for now">
             <input type="checkbox" checked={startAtLogin} onChange={(event) => setStartAtLogin(event.target.checked)} />
-            Start Live Runtime at login
+            Start at login
           </label>
-          <small>Stored now; native autostart plugin wiring is next.</small>
         </section>
 
         <section className="settings-card toggle-card">
-          <label>
+          <label title="Ollama supervisor is the next native layer">
             <input type="checkbox" checked={autoStartOllama} onChange={(event) => setAutoStartOllama(event.target.checked)} />
-            Start Ollama if unavailable
+            Start Ollama
           </label>
-          <small>Stored now; service supervisor wiring is next.</small>
         </section>
 
         <section className="settings-card toggle-card">
           <label>
             <input type="checkbox" checked={chat.speakResponses} onChange={(event) => chat.setSpeakResponses(event.target.checked)} />
-            Speak responses
+            Voice replies
           </label>
-          <button type="button" onClick={() => void stopSpeech()}>Stop speech</button>
+          <button type="button" title="Stop current speech" onClick={() => void stopSpeech()}>Stop</button>
         </section>
 
         <section className="settings-card">
@@ -333,54 +334,53 @@ function AutomationPage({
   return (
     <section className="page-panel automation-page">
       <div className="page-header">
-        <p className="eyebrow">Automations</p>
-        <h2>Personal Jarvis routines</h2>
+        <p className="eyebrow">Routines</p>
+        <h2>Automate prompts</h2>
       </div>
 
       <div className="automation-layout">
         <section className="automation-card automation-builder">
-          <span>Create automation</span>
-          <input placeholder="Name, e.g. Morning news report" value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
-          <textarea placeholder="Prompt Live Runtime should run" value={draft.prompt} onChange={(event) => setDraft({ ...draft, prompt: event.target.value })} rows={4} />
-          <input placeholder="Schedule, e.g. Every day at 8:00 AM" value={draft.schedule} onChange={(event) => setDraft({ ...draft, schedule: event.target.value })} />
-          <button type="button" disabled={!canCreate} onClick={createAutomation}>Create automation</button>
+          <span>Create</span>
+          <input placeholder="Routine name" title="Name this routine" value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
+          <textarea placeholder="What should it do?" title="Prompt to run" value={draft.prompt} onChange={(event) => setDraft({ ...draft, prompt: event.target.value })} rows={3} />
+          <input placeholder="When should it run?" title="Schedule text" value={draft.schedule} onChange={(event) => setDraft({ ...draft, schedule: event.target.value })} />
+          <button type="button" title="Save routine" disabled={!canCreate} onClick={createAutomation}>Create</button>
         </section>
 
         <section className="automation-card">
           <span>Templates</span>
           <div className="template-list">
             {automationExamples.map((example) => (
-              <button key={example.title} type="button" onClick={() => setDraft(example)}>
+              <button key={example.title} type="button" title={`Use ${example.title}`} onClick={() => setDraft(example)}>
                 {example.title}
               </button>
             ))}
           </div>
         </section>
 
-        <section className="automation-card good">
-          <span>Self-learning direction</span>
-          <strong>Keep skills and routines as external memory, not a huge system prompt.</strong>
-          <p>Small local models stay faster when skills are retrieved only when relevant.</p>
+        <section className="automation-card good compact-note">
+          <span>Skills</span>
+          <strong>Saved as reusable routines.</strong>
         </section>
 
         <section className="automation-list">
           {automations.length === 0 && (
             <div className="empty-state">
-              <strong>No automations yet.</strong>
-              <p>Use a template or create your first routine.</p>
+              <strong>No routines yet.</strong>
+              <p>Use a template or create one.</p>
             </div>
           )}
           {automations.map((automation) => (
             <article className="automation-item" key={automation.id}>
               <div>
-                <span>{automation.enabled ? "Enabled" : "Paused"}</span>
+                <span>{automation.enabled ? "On" : "Paused"}</span>
                 <h3>{automation.title}</h3>
                 <p>{automation.prompt}</p>
                 <small>{automation.schedule}</small>
               </div>
               <div className="automation-actions">
-                <button type="button" onClick={() => setAutomations((current) => current.map((item) => item.id === automation.id ? { ...item, enabled: !item.enabled } : item))}>{automation.enabled ? "Pause" : "Enable"}</button>
-                <button type="button" onClick={() => setAutomations((current) => current.filter((item) => item.id !== automation.id))}>Delete</button>
+                <button type="button" title="Pause or enable routine" onClick={() => setAutomations((current) => current.map((item) => item.id === automation.id ? { ...item, enabled: !item.enabled } : item))}>{automation.enabled ? "Pause" : "Enable"}</button>
+                <button type="button" title="Delete routine" onClick={() => setAutomations((current) => current.filter((item) => item.id !== automation.id))}>Delete</button>
               </div>
             </article>
           ))}
