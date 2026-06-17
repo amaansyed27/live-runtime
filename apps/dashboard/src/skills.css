@@ -1,0 +1,131 @@
+.page-rail-four {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.page-rail-four button {
+  font-size: 0.8rem;
+  padding-inline: 0.3rem;
+}
+
+.routine-layout {
+  align-content: start;
+}
+
+.routine-builder {
+  background: linear-gradient(145deg, var(--panel), rgba(217, 234, 216, 0.24));
+}
+
+.routine-builder small {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.template-card {
+  display: grid;
+  gap: 0.48rem;
+}
+
+.template-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.template-list button {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-empty {
+  min-height: 4.4rem;
+  display: grid;
+  align-content: center;
+}
+
+.skills-page {
+  grid-template-rows: auto 1fr;
+  padding: 0.62rem;
+  gap: 0.6rem;
+  overflow-y: auto;
+}
+
+.skills-layout {
+  display: grid;
+  gap: 0.52rem;
+  align-content: start;
+}
+
+.skill-hero,
+.skill-card {
+  padding: 0.68rem;
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  background: var(--panel);
+}
+
+.skill-hero {
+  background: linear-gradient(145deg, rgba(217, 234, 216, 0.58), var(--panel));
+}
+
+:root[data-theme="dark"] .skill-hero {
+  background: linear-gradient(145deg, rgba(74, 122, 96, 0.26), var(--panel));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] .skill-hero {
+    background: linear-gradient(145deg, rgba(74, 122, 96, 0.26), var(--panel));
+  }
+}
+
+.skill-hero span,
+.skill-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.61rem;
+  font-weight: 790;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.skill-hero strong {
+  display: block;
+  margin-top: 0.24rem;
+  font-size: 1rem;
+  letter-spacing: -0.03em;
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.52rem;
+}
+
+.skill-card h3 {
+  margin: 0.24rem 0 0.2rem;
+  font-size: 0.9rem;
+  letter-spacing: -0.03em;
+}
+
+.skill-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.skills-page .compact-note p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+@media (max-width: 420px) {
+  .page-rail-four button {
+    font-size: 0.72rem;
+  }
+
+  .skill-grid,
+  .template-list {
+    grid-template-columns: 1fr;
+  }
+}
