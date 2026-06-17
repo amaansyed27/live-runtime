@@ -1,0 +1,79 @@
+/* Minimal, inset scrollbars for the borderless desktop shell. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(47, 107, 79, 0.34) transparent;
+}
+
+:root[data-theme="dark"] * {
+  scrollbar-color: rgba(159, 210, 181, 0.34) transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] * {
+    scrollbar-color: rgba(159, 210, 181, 0.34) transparent;
+  }
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 10px 0;
+}
+
+*::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(47, 107, 79, 0.3);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(47, 107, 79, 0.48);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+:root[data-theme="dark"] *::-webkit-scrollbar-thumb {
+  background: rgba(159, 210, 181, 0.28);
+  background-clip: content-box;
+}
+
+:root[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+  background: rgba(159, 210, 181, 0.46);
+  background-clip: content-box;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] *::-webkit-scrollbar-thumb {
+    background: rgba(159, 210, 181, 0.28);
+    background-clip: content-box;
+  }
+
+  :root[data-theme="system"] *::-webkit-scrollbar-thumb:hover {
+    background: rgba(159, 210, 181, 0.46);
+    background-clip: content-box;
+  }
+}
+
+.conversation,
+.mini-conversation,
+.settings-page,
+.automation-page {
+  scrollbar-gutter: stable;
+  padding-right: 0.48rem;
+}
+
+.conversation::-webkit-scrollbar-track,
+.mini-conversation::-webkit-scrollbar-track,
+.settings-page::-webkit-scrollbar-track,
+.automation-page::-webkit-scrollbar-track {
+  margin: 12px 0;
+}
