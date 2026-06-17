@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OllamaClient, createMessage, defaultRuntimeSettings, type ChatMessage, type ModelInfo } from "@live-runtime/core";
 import { speakText } from "../lib/tauriBridge";
+import { saveJournal } from "../lib/journalBridge";
 
 const CHAT_STORAGE_KEY = "live-runtime.chat.messages";
 
@@ -68,6 +69,16 @@ export function useRuntimeChat(): RuntimeChatState {
     setIsLoading(true);
     setError(null);
 
+    void saveJournal({
+      kind: "chat",
+      scope: "longTerm",
+      title: "User message",
+      content: trimmed,
+      source: "chat:user",
+      confidence: 1,
+      tags: ["chat", "user"]
+    });
+
     let assistantText = "";
     try {
       for await (const chunk of client.chat({
@@ -85,6 +96,16 @@ export function useRuntimeChat(): RuntimeChatState {
           message.id === assistantMessage.id ? { ...message, content: assistantText } : message
         )));
       }
+
+      void saveJournal({
+        kind: "chat",
+        scope: "longTerm",
+        title: "Assistant reply",
+        content: assistantText,
+        source: "chat:assistant",
+        confidence: 0.9,
+        tags: ["chat", "assistant", model]
+      });
 
       if (speakResponses) await speakText(assistantText);
     } catch (cause) {
