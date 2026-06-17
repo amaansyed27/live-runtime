@@ -7,7 +7,39 @@ import { getRuntimeStatus, hideCompanion, hideToTray, showCompanion, stopSpeech 
 import { useRuntimeChat } from "./hooks/useRuntimeChat";
 
 const COMPANION_ENABLED_KEY = "live-runtime.companion.enabled";
+const THEME_KEY = "live-runtime.theme";
+const START_LOGIN_KEY = "live-runtime.start-login";
+const AUTO_OLLAMA_KEY = "live-runtime.auto-ollama";
+const AUTOMATIONS_KEY = "live-runtime.automations";
+
 type Page = "chat" | "settings" | "automation";
+type ThemeMode = "system" | "light" | "dark";
+
+interface AutomationItem {
+  id: string;
+  title: string;
+  prompt: string;
+  schedule: string;
+  enabled: boolean;
+}
+
+const automationExamples = [
+  {
+    title: "Morning news report",
+    prompt: "Give me a concise news report with tech, AI, India, and world headlines.",
+    schedule: "Every day at 8:00 AM"
+  },
+  {
+    title: "World Cup updates",
+    prompt: "Keep me posted on goal updates, major news, injuries, and match context from the ongoing FIFA World Cup.",
+    schedule: "When major updates happen"
+  },
+  {
+    title: "Documentation cleanup",
+    prompt: "Review my project notes and convert rough notes into clean markdown documentation.",
+    schedule: "On demand"
+  }
+];
 
 export function App() {
   const chat = useRuntimeChat();
@@ -17,6 +49,11 @@ export function App() {
   const [page, setPage] = useState<Page>("chat");
   const [shortcut, setShortcut] = useState(() => window.localStorage.getItem("live-runtime.shortcut") ?? "Ctrl+Shift+Space");
   const [companionEnabled, setCompanionEnabled] = useState(() => window.localStorage.getItem(COMPANION_ENABLED_KEY) === "true");
+  const [theme, setTheme] = useState<ThemeMode>(() => readTheme());
+  const [startAtLogin, setStartAtLogin] = useState(() => window.localStorage.getItem(START_LOGIN_KEY) === "true");
+  const [autoStartOllama, setAutoStartOllama] = useState(() => window.localStorage.getItem(AUTO_OLLAMA_KEY) === "true");
+  const [automations, setAutomations] = useState<AutomationItem[]>(() => readAutomations());
+  const [automationDraft, setAutomationDraft] = useState({ title: "", prompt: "", schedule: "" });
 
   useEffect(() => {
     void getRuntimeStatus().then(setStatus);
@@ -33,6 +70,23 @@ export function App() {
       void (companionEnabled ? showCompanion() : hideCompanion());
     }
   }, [companionEnabled, windowLabel]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
+
+  useEffect(() => {
+    window.localStorage.setItem(START_LOGIN_KEY, String(startAtLogin));
+  }, [startAtLogin]);
+
+  useEffect(() => {
+    window.localStorage.setItem(AUTO_OLLAMA_KEY, String(autoStartOllama));
+  }, [autoStartOllama]);
+
+  useEffect(() => {
+    window.localStorage.setItem(AUTOMATIONS_KEY, JSON.stringify(automations));
+  }, [automations]);
 
   if (windowLabel === "companion") {
     return (
@@ -75,7 +129,7 @@ export function App() {
         <nav className="page-rail" aria-label="Main sections">
           <button className={page === "chat" ? "active" : ""} type="button" onClick={() => setPage("chat")}>Chat</button>
           <button className={page === "settings" ? "active" : ""} type="button" onClick={() => setPage("settings")}>Settings</button>
-          <button className={page === "automation" ? "active" : ""} type="button" onClick={() => setPage("automation")}>Automation</button>
+          <button className={page === "automation" ? "active" : ""} type="button" onClick={() => setPage("automation")}>Automations</button>
         </nav>
 
         {page === "chat" && <ChatPage chat={chat} />}
@@ -87,9 +141,22 @@ export function App() {
             setShortcut={setShortcut}
             companionEnabled={companionEnabled}
             setCompanionEnabled={setCompanionEnabled}
+            theme={theme}
+            setTheme={setTheme}
+            startAtLogin={startAtLogin}
+            setStartAtLogin={setStartAtLogin}
+            autoStartOllama={autoStartOllama}
+            setAutoStartOllama={setAutoStartOllama}
           />
         )}
-        {page === "automation" && <AutomationPage />}
+        {page === "automation" && (
+          <AutomationPage
+            automations={automations}
+            setAutomations={setAutomations}
+            draft={automationDraft}
+            setDraft={setAutomationDraft}
+          />
+        )}
       </section>
     </main>
   );
@@ -111,9 +178,9 @@ function ChatPage({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) {
   return (
     <section className="page-panel chat-page">
       <div className="page-hero">
-        <p className="eyebrow">Loom-style local runtime</p>
+        <p className="eyebrow">Jarvis-style local runtime</p>
         <h1>Small desktop AI companion.</h1>
-        <span>Chat context persists until New chat.</span>
+        <span>Context persists until New chat. Skills and automations stay outside the system prompt.</span>
       </div>
       {chat.error && <div className="error-banner">{chat.error}</div>}
       <section className="conversation" aria-label="Conversation">
@@ -130,7 +197,13 @@ function SettingsPage({
   shortcut,
   setShortcut,
   companionEnabled,
-  setCompanionEnabled
+  setCompanionEnabled,
+  theme,
+  setTheme,
+  startAtLogin,
+  setStartAtLogin,
+  autoStartOllama,
+  setAutoStartOllama
 }: {
   chat: ReturnType<typeof useRuntimeChat>;
   status: { platform: string; arch: string; speechOutput: string; trayEnabled: boolean };
@@ -138,6 +211,12 @@ function SettingsPage({
   setShortcut(value: string): void;
   companionEnabled: boolean;
   setCompanionEnabled(value: boolean | ((current: boolean) => boolean)): void;
+  theme: ThemeMode;
+  setTheme(value: ThemeMode): void;
+  startAtLogin: boolean;
+  setStartAtLogin(value: boolean): void;
+  autoStartOllama: boolean;
+  setAutoStartOllama(value: boolean): void;
 }) {
   return (
     <section className="page-panel settings-page">
@@ -147,6 +226,15 @@ function SettingsPage({
       </div>
 
       <div className="settings-grid">
+        <section className="settings-card">
+          <label htmlFor="theme">Theme</label>
+          <select id="theme" value={theme} onChange={(event) => setTheme(event.target.value as ThemeMode)}>
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark mint</option>
+          </select>
+        </section>
+
         <section className="settings-card">
           <label htmlFor="baseUrl">Provider URL</label>
           <input id="baseUrl" value={chat.baseUrl} onChange={(event) => chat.setBaseUrl(event.target.value)} />
@@ -179,6 +267,22 @@ function SettingsPage({
 
         <section className="settings-card toggle-card">
           <label>
+            <input type="checkbox" checked={startAtLogin} onChange={(event) => setStartAtLogin(event.target.checked)} />
+            Start Live Runtime at login
+          </label>
+          <small>Stored now; native autostart plugin wiring is next.</small>
+        </section>
+
+        <section className="settings-card toggle-card">
+          <label>
+            <input type="checkbox" checked={autoStartOllama} onChange={(event) => setAutoStartOllama(event.target.checked)} />
+            Start Ollama if unavailable
+          </label>
+          <small>Stored now; service supervisor wiring is next.</small>
+        </section>
+
+        <section className="settings-card toggle-card">
+          <label>
             <input type="checkbox" checked={chat.speakResponses} onChange={(event) => chat.setSpeakResponses(event.target.checked)} />
             Speak responses
           </label>
@@ -198,27 +302,106 @@ function SettingsPage({
   );
 }
 
-function AutomationPage() {
+function AutomationPage({
+  automations,
+  setAutomations,
+  draft,
+  setDraft
+}: {
+  automations: AutomationItem[];
+  setAutomations(value: AutomationItem[] | ((current: AutomationItem[]) => AutomationItem[])): void;
+  draft: { title: string; prompt: string; schedule: string };
+  setDraft(value: { title: string; prompt: string; schedule: string }): void;
+}) {
+  const canCreate = draft.title.trim() && draft.prompt.trim() && draft.schedule.trim();
+
+  const createAutomation = () => {
+    if (!canCreate) return;
+    setAutomations((current) => [
+      {
+        id: crypto.randomUUID(),
+        title: draft.title.trim(),
+        prompt: draft.prompt.trim(),
+        schedule: draft.schedule.trim(),
+        enabled: true
+      },
+      ...current
+    ]);
+    setDraft({ title: "", prompt: "", schedule: "" });
+  };
+
   return (
     <section className="page-panel automation-page">
       <div className="page-header">
-        <p className="eyebrow">Automation</p>
-        <h2>Action approvals</h2>
+        <p className="eyebrow">Automations</p>
+        <h2>Personal Jarvis routines</h2>
       </div>
-      <div className="automation-stack">
+
+      <div className="automation-layout">
+        <section className="automation-card automation-builder">
+          <span>Create automation</span>
+          <input placeholder="Name, e.g. Morning news report" value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
+          <textarea placeholder="Prompt Live Runtime should run" value={draft.prompt} onChange={(event) => setDraft({ ...draft, prompt: event.target.value })} rows={4} />
+          <input placeholder="Schedule, e.g. Every day at 8:00 AM" value={draft.schedule} onChange={(event) => setDraft({ ...draft, schedule: event.target.value })} />
+          <button type="button" disabled={!canCreate} onClick={createAutomation}>Create automation</button>
+        </section>
+
+        <section className="automation-card">
+          <span>Templates</span>
+          <div className="template-list">
+            {automationExamples.map((example) => (
+              <button key={example.title} type="button" onClick={() => setDraft(example)}>
+                {example.title}
+              </button>
+            ))}
+          </div>
+        </section>
+
         <section className="automation-card good">
-          <span>Safe by default</span>
-          <strong>Open browser, search, and app-control actions will require approval.</strong>
+          <span>Self-learning direction</span>
+          <strong>Keep skills and routines as external memory, not a huge system prompt.</strong>
+          <p>Small local models stay faster when skills are retrieved only when relevant.</p>
         </section>
-        <section className="automation-card">
-          <span>Examples</span>
-          <p>“Open Chrome and search for Tauri borderless window”, “open Notion”, “play lofi music”.</p>
-        </section>
-        <section className="automation-card">
-          <span>Next layer</span>
-          <p>Native automation should be implemented as a permissioned action broker rather than raw unrestricted system access.</p>
+
+        <section className="automation-list">
+          {automations.length === 0 && (
+            <div className="empty-state">
+              <strong>No automations yet.</strong>
+              <p>Use a template or create your first routine.</p>
+            </div>
+          )}
+          {automations.map((automation) => (
+            <article className="automation-item" key={automation.id}>
+              <div>
+                <span>{automation.enabled ? "Enabled" : "Paused"}</span>
+                <h3>{automation.title}</h3>
+                <p>{automation.prompt}</p>
+                <small>{automation.schedule}</small>
+              </div>
+              <div className="automation-actions">
+                <button type="button" onClick={() => setAutomations((current) => current.map((item) => item.id === automation.id ? { ...item, enabled: !item.enabled } : item))}>{automation.enabled ? "Pause" : "Enable"}</button>
+                <button type="button" onClick={() => setAutomations((current) => current.filter((item) => item.id !== automation.id))}>Delete</button>
+              </div>
+            </article>
+          ))}
         </section>
       </div>
     </section>
   );
+}
+
+function readTheme(): ThemeMode {
+  const stored = window.localStorage.getItem(THEME_KEY);
+  return stored === "dark" || stored === "light" || stored === "system" ? stored : "system";
+}
+
+function readAutomations(): AutomationItem[] {
+  try {
+    const raw = window.localStorage.getItem(AUTOMATIONS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as AutomationItem[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
