@@ -99,21 +99,48 @@
 }
 
 .intelligence-layout,
-.intel-grid {
+.intel-grid,
+.intel-status {
   display: grid;
   gap: 0.52rem;
 }
 
 .intel-hero,
-.intel-grid article {
+.intel-grid article,
+.intel-status article {
   padding: 0.68rem;
   border: 1px solid var(--line);
   border-radius: var(--card-radius);
   background: var(--panel);
 }
 
+.intel-status {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.intel-status article.good {
+  background: rgba(217, 234, 216, 0.62);
+}
+
+.intel-status article.warn {
+  background: rgba(255, 238, 205, 0.72);
+}
+
+:root[data-theme="dark"] .intel-status article.good {
+  background: rgba(74, 122, 96, 0.28);
+}
+
+:root[data-theme="dark"] .intel-status article.warn {
+  background: rgba(130, 91, 28, 0.32);
+}
+
+.intel-status article.wide {
+  grid-column: 1 / -1;
+}
+
 .intel-hero span,
 .intel-grid span,
+.intel-status span,
 .intel-flow span {
   display: block;
   color: var(--muted);
@@ -124,11 +151,13 @@
 }
 
 .intel-hero strong,
-.intel-grid strong {
+.intel-grid strong,
+.intel-status strong {
   display: block;
   margin-top: 0.22rem;
   font-size: 0.85rem;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .intel-grid {
