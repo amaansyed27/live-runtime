@@ -7,6 +7,17 @@ export interface ScoredJournalRecord {
   score: number;
 }
 
+export async function checkEmbeddingModel(baseUrl: string, model = EMBED_MODEL): Promise<boolean | null> {
+  try {
+    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/tags`);
+    if (!response.ok) return null;
+    const payload = await response.json() as { models?: Array<{ name?: string; model?: string }> };
+    return (payload.models ?? []).some((item) => item.name === model || item.model === model);
+  } catch {
+    return null;
+  }
+}
+
 export async function makeEmbedding(baseUrl: string, input: string, model = EMBED_MODEL): Promise<number[] | null> {
   const text = input.trim();
   if (!text) return null;
