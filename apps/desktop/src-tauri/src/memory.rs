@@ -16,6 +16,8 @@ pub struct MemoryDraft {
     pub source: String,
     pub confidence: Option<f64>,
     pub tags: Option<Vec<String>>,
+    pub embedding_model: Option<String>,
+    pub vector: Option<Vec<f64>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -29,6 +31,8 @@ pub struct MemoryRecord {
     pub source: String,
     pub confidence: f64,
     pub tags: Vec<String>,
+    pub embedding_model: Option<String>,
+    pub vector: Option<Vec<f64>>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -40,6 +44,7 @@ pub struct MemoryStatus {
     pub memory_count: i64,
     pub profile_count: i64,
     pub skill_count: i64,
+    pub vector_count: i64,
 }
 
 #[tauri::command]
@@ -51,6 +56,7 @@ pub fn memory_status(app: AppHandle) -> Result<MemoryStatus, String> {
         memory_count: count_rows(&connection, "memories")?,
         profile_count: count_rows(&connection, "profile_entries")?,
         skill_count: count_rows(&connection, "skills")?,
+        vector_count: count_vector_rows(&connection)?,
     })
 }
 
@@ -62,11 +68,12 @@ pub fn save_memory(app: AppHandle, draft: MemoryDraft) -> Result<MemoryRecord, S
     let confidence = draft.confidence.unwrap_or(0.75).clamp(0.0, 1.0);
     let tags = draft.tags.unwrap_or_default();
     let tags_json = serde_json::to_string(&tags).map_err(|error| error.to_string())?;
+    let vector_json = serde_json::to_string(&draft.vector).map_err(|error| error.to_string())?;
 
     connection
         .execute(
-            "insert into memories (id, kind, scope, title, content, source, confidence, tags_json, created_at, updated_at)
-             values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            "insert into memories (id, kind, scope, title, content, source, confidence, tags_json, embedding_model, vector_json, created_at, updated_at)
+             values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
             params![
                 id,
                 draft.kind,
@@ -76,6 +83,8 @@ pub fn save_memory(app: AppHandle, draft: MemoryDraft) -> Result<MemoryRecord, S
                 draft.source,
                 confidence,
                 tags_json,
+                draft.embedding_model,
+                vector_json,
                 now,
                 now
             ],
@@ -88,10 +97,10 @@ pub fn save_memory(app: AppHandle, draft: MemoryDraft) -> Result<MemoryRecord, S
 #[tauri::command]
 pub fn list_memories(app: AppHandle, limit: Option<i64>) -> Result<Vec<MemoryRecord>, String> {
     let connection = open_database(&app)?;
-    let safe_limit = limit.unwrap_or(40).clamp(1, 200);
+    let safe_limit = limit.unwrap_or(80).clamp(1, 500);
     let mut statement = connection
         .prepare(
-            "select id, kind, scope, title, content, source, confidence, tags_json, created_at, updated_at
+            "select id, kind, scope, title, content, source, confidence, tags_json, embedding_model, vector_json, created_at, updated_at
              from memories
              order by created_at desc
              limit ?1",
@@ -134,6 +143,8 @@ fn initialize_schema(connection: &Connection) -> Result<(), String> {
                 source text not null,
                 confidence real not null,
                 tags_json text not null,
+                embedding_model text,
+                vector_json text,
                 created_at text not null,
                 updated_at text not null
             );
@@ -162,20 +173,32 @@ fn initialize_schema(connection: &Connection) -> Result<(), String> {
             create index if not exists idx_memories_kind on memories(kind);
             create index if not exists idx_memories_scope on memories(scope);",
         )
-        .map_err(|error| error.to_string())
+        .map_err(|error| error.to_string())?;
+
+    let _ = connection.execute("alter table memories add column embedding_model text", []);
+    let _ = connection.execute("alter table memories add column vector_json text", []);
+    Ok(())
 }
 
 fn count_rows(connection: &Connection, table: &str) -> Result<i64, String> {
     let sql = format!("select count(*) from {table}");
+    connection.query_row(&sql, [], |row| row.get::<_, i64>(0)).map_err(|error| error.to_string())
+}
+
+fn count_vector_rows(connection: &Connection) -> Result<i64, String> {
     connection
-        .query_row(&sql, [], |row| row.get::<_, i64>(0))
+        .query_row(
+            "select count(*) from memories where vector_json is not null and vector_json != 'null'",
+            [],
+            |row| row.get::<_, i64>(0),
+        )
         .map_err(|error| error.to_string())
 }
 
 fn get_memory_by_id(connection: &Connection, id: &str) -> Result<MemoryRecord, String> {
     connection
         .query_row(
-            "select id, kind, scope, title, content, source, confidence, tags_json, created_at, updated_at
+            "select id, kind, scope, title, content, source, confidence, tags_json, embedding_model, vector_json, created_at, updated_at
              from memories
              where id = ?1",
             params![id],
@@ -186,7 +209,9 @@ fn get_memory_by_id(connection: &Connection, id: &str) -> Result<MemoryRecord, S
 
 fn row_to_memory(row: &rusqlite::Row<'_>) -> rusqlite::Result<MemoryRecord> {
     let tags_json: String = row.get(7)?;
+    let vector_json: Option<String> = row.get(9)?;
     let tags = serde_json::from_str::<Vec<String>>(&tags_json).unwrap_or_default();
+    let vector = vector_json.and_then(|value| serde_json::from_str::<Option<Vec<f64>>>(&value).ok()).flatten();
     Ok(MemoryRecord {
         id: row.get(0)?,
         kind: row.get(1)?,
@@ -196,7 +221,9 @@ fn row_to_memory(row: &rusqlite::Row<'_>) -> rusqlite::Result<MemoryRecord> {
         source: row.get(5)?,
         confidence: row.get(6)?,
         tags,
-        created_at: row.get(8)?,
-        updated_at: row.get(9)?,
+        embedding_model: row.get(8)?,
+        vector,
+        created_at: row.get(10)?,
+        updated_at: row.get(11)?,
     })
 }
