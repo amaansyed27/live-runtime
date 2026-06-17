@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod memory;
 mod runtime;
 mod speech;
 mod tray;
@@ -19,7 +20,10 @@ fn main() {
             runtime::show_dashboard,
             runtime::show_companion,
             runtime::hide_companion,
-            runtime::toggle_companion
+            runtime::toggle_companion,
+            memory::memory_status,
+            memory::save_memory,
+            memory::list_memories
         ])
         .run(tauri::generate_context!())
         .expect("error while running Live Runtime");
