@@ -4,9 +4,10 @@ import { createBrowserSpeechRecognition } from "@live-runtime/core";
 interface ChatComposerProps {
   disabled?: boolean;
   onSend(content: string): Promise<void>;
+  onNewChat?: () => void;
 }
 
-export function ChatComposer({ disabled, onSend }: ChatComposerProps) {
+export function ChatComposer({ disabled, onSend, onNewChat }: ChatComposerProps) {
   const [input, setInput] = useState("");
   const [partial, setPartial] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -14,7 +15,7 @@ export function ChatComposer({ disabled, onSend }: ChatComposerProps) {
 
   async function sendCurrentInput() {
     const content = input.trim();
-    if (!content) return;
+    if (!content || disabled) return;
     setInput("");
     await onSend(content);
   }
@@ -54,6 +55,7 @@ export function ChatComposer({ disabled, onSend }: ChatComposerProps) {
 
   return (
     <form className="composer" onSubmit={submit}>
+      {onNewChat && <div className="composer-toolbar" aria-label="Chat controls"><button type="button" onClick={onNewChat}>New Chat</button></div>}
       <div className="composer-input-wrap">
         <textarea
           value={input}
