@@ -34,7 +34,7 @@ input, select, textarea { border-radius: 0.52rem; padding: 0.72rem 0.82rem; }
 .settings-card small, .automation-card p, .skill-card p, .intelligence-card p, .local-first p, .intelligence-status-card small, .compact-note p { font-size: .86rem; line-height: 1.45; }
 .composer { display: flex !important; flex-direction: column !important; gap: 0 !important; padding: .72rem !important; }
 .composer-header-actions { position: absolute; top: 1rem; right: .95rem; display: flex; gap: .42rem; }
-.floating-panel .composer-header-actions { display: none; }
+.floating-panel .composer-header-actions { position: static; display: flex; justify-content: flex-end; margin: 0 0 .5rem; }
 .composer-header-actions button { width: 2.35rem; height: 2.35rem; min-width: 0; padding: 0; display: grid; place-items: center; border-radius: 999px; font-size: 1rem; background: rgba(20,29,26,.72); }
 .composer-header-actions .active-live { color: #9df5b5; box-shadow: 0 0 0 4px rgba(95,211,132,.12); }
 .composer button svg { width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
