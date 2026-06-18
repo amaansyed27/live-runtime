@@ -23,7 +23,8 @@ fn main() {
             runtime::toggle_companion,
             memory::memory_status,
             memory::save_memory,
-            memory::list_memories
+            memory::list_memories,
+            memory::clear_memory
         ])
         .run(tauri::generate_context!())
         .expect("error while running Live Runtime");
