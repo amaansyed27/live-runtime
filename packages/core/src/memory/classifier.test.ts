@@ -30,9 +30,9 @@ const cases: ClassifierCase[] = [
   },
   {
     name: "pc control action",
-    input: "Open the app and run the desktop command for this repo.",
+    input: "Open the app and run the desktop command.",
     expectedClass: "actionRequest",
-    expectedDynamicClass: "repo-workflow"
+    expectedDynamicClass: "pc-control"
   },
   {
     name: "reusable workflow",
