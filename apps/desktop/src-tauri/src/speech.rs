@@ -185,7 +185,7 @@ impl SpeechSettings {
 }
 
 fn powershell_single_quote(value: &str) -> String {
-    value.replace(''', "''")
+    value.replace('\'', "''")
 }
 
 fn clamp(value: f32, min: f32, max: f32) -> f32 {
