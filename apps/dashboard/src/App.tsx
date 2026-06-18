@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useEffect, useState, type PointerEvent } from "react";
+import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import { ChatComposer } from "./components/ChatComposer";
 import { IntelligenceStatus } from "./components/IntelligenceStatus";
 import { MessageBubble } from "./components/MessageBubble";
@@ -14,6 +14,10 @@ const AUTO_OLLAMA_KEY = "live-runtime.auto-ollama";
 const AUTOMATIONS_KEY = "live-runtime.automations";
 const SKILLS_KEY = "live-runtime.skills";
 const SEARCH_PROVIDER_KEY = "live-runtime.search.provider";
+const COMPANION_COMPACT_SIZE = new LogicalSize(390, 64);
+const COMPANION_EXPANDED_SIZE = new LogicalSize(340, 410);
+const COMPANION_COMPACT_MIN_SIZE = new LogicalSize(340, 64);
+const COMPANION_EXPANDED_MIN_SIZE = new LogicalSize(300, 92);
 
 type Page = "chat" | "settings" | "automation" | "skills" | "intelligence";
 type ThemeMode = "system" | "light" | "dark";
@@ -107,15 +111,52 @@ export function App() {
 }
 
 function CompanionWindow({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) {
+  const [compact, setCompact] = useState(false);
+
+  async function setCompanionCompact(nextCompact: boolean) {
+    setCompact(nextCompact);
+    try {
+      const window = getCurrentWindow();
+      if (nextCompact) {
+        await window.setMinSize(COMPANION_COMPACT_MIN_SIZE);
+        await window.setSize(COMPANION_COMPACT_SIZE);
+        return;
+      }
+      await window.setMinSize(COMPANION_EXPANDED_MIN_SIZE);
+      await window.setSize(COMPANION_EXPANDED_SIZE);
+    } catch (error) {
+      console.warn("Unable to resize companion window", error);
+    }
+  }
+
+  function startDrag(event: PointerEvent<HTMLElement>) {
+    if (event.button !== 0) return;
+    const target = event.target;
+    if (target instanceof HTMLElement && target.closest("button, textarea, input, select, a, [role='button']")) return;
+    void getCurrentWindow().startDragging().catch((error) => {
+      console.warn("Unable to drag companion window", error);
+    });
+  }
+
+  function startGripDrag(event: PointerEvent<HTMLElement>) {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    void getCurrentWindow().startDragging().catch((error) => {
+      console.warn("Unable to drag companion window", error);
+    });
+  }
+
   return (
-    <main className="floating-panel companion-window">
-      <header className="floating-titlebar companion-titlebar">
-        <Brand label="Companion" compact draggable={false} />
-        <div className="titlebar-actions">
-          <button className="companion-bar-toggle" type="button" title="Compact companion" aria-label="Compact companion">⌄</button>
-          <button type="button" title="Hide companion" onClick={() => void hideCompanion()}>×</button>
+    <main className={`floating-panel companion-window ${compact ? "companion-bar" : ""}`}>
+      <header className="floating-titlebar companion-titlebar" onPointerDown={compact ? undefined : startDrag}>
+        {!compact && <Brand label="Companion" compact draggable={false} />}
+        <div className="titlebar-actions" onPointerDown={(event) => event.stopPropagation()}>
+          <button className="companion-bar-toggle" type="button" title={compact ? "Restore companion" : "Compact companion"} aria-label={compact ? "Restore companion" : "Compact companion"} onClick={() => void setCompanionCompact(!compact)}>{compact ? "↑" : "⌄"}</button>
+          {!compact && <button type="button" title="Hide companion" onClick={() => void hideCompanion()}>×</button>}
         </div>
       </header>
+      {compact && <div className="companion-drag-grip" role="button" aria-label="Drag companion" title="Drag companion" onPointerDown={startGripDrag} />}
       <section className="floating-body">
         <div className="mini-status"><span>Ready</span><strong>Ask or dictate</strong></div>
         <section className="mini-conversation" aria-label="Recent companion chat">{chat.messages.slice(-4).map((message) => <MessageBubble key={message.id} message={message} />)}</section>
