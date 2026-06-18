@@ -3,7 +3,6 @@
   --card-radius: 0.58rem;
   --panel-radius: 0.78rem;
   --frame-radius: 0.95rem;
-  --shadow: 0 18px 48px rgba(7, 12, 10, 0.26);
 }
 
 button {
@@ -20,8 +19,7 @@ textarea {
 
 .desktop-frame,
 .floating-panel {
-  background:
-    linear-gradient(180deg, rgba(21, 31, 27, 0.98), rgba(10, 15, 13, 0.98));
+  background: linear-gradient(180deg, rgba(21, 31, 27, 0.98), rgba(10, 15, 13, 0.98));
   border-color: rgba(118, 190, 151, 0.22);
 }
 
@@ -31,30 +29,11 @@ textarea {
   background: rgba(12, 18, 16, 0.72);
 }
 
-.brand-block p {
-  font-size: 1rem;
-  letter-spacing: -0.025em;
-}
-
-.brand-block small {
-  font-size: 0.73rem;
-}
-
-.app-body {
-  gap: 0.62rem;
-  padding: 0.64rem;
-}
-
-.page-rail {
-  border-radius: 0.7rem;
-  background: rgba(10, 15, 13, 0.64);
-  gap: 0.2rem;
-}
-
-.page-rail button {
-  font-size: 0.86rem;
-  padding: 0.58rem 0.34rem;
-}
+.brand-block p { font-size: 1rem; }
+.brand-block small { font-size: 0.73rem; }
+.app-body { gap: 0.62rem; padding: 0.64rem; }
+.page-rail { border-radius: 0.7rem; background: rgba(10, 15, 13, 0.64); gap: 0.2rem; }
+.page-rail button { font-size: 0.86rem; padding: 0.58rem 0.34rem; }
 
 .page-panel {
   border-radius: var(--panel-radius);
@@ -68,48 +47,21 @@ textarea {
 }
 
 .page-hero,
-.page-header {
-  padding: 0.88rem 1rem;
-}
-
-.page-hero h1 {
-  font-size: clamp(1.6rem, 5vw, 2.15rem);
-  line-height: 1.04;
-}
-
+.page-header { padding: 0.88rem 1rem; }
+.page-hero h1 { font-size: clamp(1.6rem, 5vw, 2.15rem); line-height: 1.04; }
 .page-hero span,
-.page-header h2 {
-  font-size: 1rem;
-}
-
+.page-header h2 { font-size: 1rem; }
 .conversation,
-.mini-conversation {
-  gap: 0.7rem;
-  padding: 0.82rem;
-}
-
-.message {
-  border-radius: 0.68rem;
-  padding: 0.78rem 0.86rem;
-  max-width: min(760px, 92%);
-}
-
-.message p {
-  font-size: 0.96rem;
-  line-height: 1.52;
-}
-
-.message-meta {
-  font-size: 0.72rem;
-}
+.mini-conversation { gap: 0.7rem; padding: 0.82rem; }
+.message { border-radius: 0.68rem; padding: 0.78rem 0.86rem; max-width: min(760px, 92%); }
+.message p { font-size: 0.96rem; line-height: 1.52; }
+.message-meta { font-size: 0.72rem; }
 
 .settings-grid,
 .automation-layout,
 .skills-layout,
 .intelligence-grid,
-.intelligence-status-grid {
-  gap: 0.72rem;
-}
+.intelligence-status-grid { gap: 0.72rem; }
 
 .settings-card,
 .automation-card,
@@ -130,25 +82,6 @@ textarea {
   border-radius: 0.62rem;
   background: rgba(20, 29, 26, 0.66);
   box-shadow: none;
-}
-
-.settings-card,
-.automation-builder {
-  gap: 0.58rem;
-}
-
-.settings-card label,
-.automation-card span,
-.signal-card span,
-.mini-status span,
-.automation-item span,
-.intelligence-status-card span,
-.intelligence-card span,
-.skill-card span,
-.skill-hero span,
-.intel-grid span,
-.intel-hero span {
-  font-size: 0.68rem;
 }
 
 .signal-card strong,
@@ -177,53 +110,47 @@ textarea {
 }
 
 .composer {
-  grid-template-columns: 1fr auto;
-  gap: 0.58rem;
-  padding: 0.72rem;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.65rem !important;
+  padding: 0.72rem !important;
 }
 
-.composer-toolbar {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
-.composer-toolbar button {
-  min-width: 7rem;
-  background: rgba(20, 29, 26, 0.72);
-}
-
-.danger-soft {
-  color: #ffc7b8;
-  border-color: rgba(255, 138, 110, 0.28);
-}
+.composer-input-wrap { width: 100%; }
 
 .composer-input-wrap textarea {
-  min-height: 5.2rem;
+  min-height: 5rem !important;
+  max-height: 8rem;
   font-size: 0.96rem;
 }
 
+.composer-actions,
+.composer-actions-row {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.composer-actions-row button,
 .composer-actions button {
-  min-width: 6.2rem;
+  width: auto !important;
+  min-width: 5.8rem;
+  height: 2.55rem !important;
+  padding: 0 0.9rem !important;
+  flex: 0 0 auto !important;
 }
 
-.intel-flow {
-  display: grid;
-  gap: 0.45rem;
+.composer-actions-row button[type="submit"],
+.composer-actions button[type="submit"] {
+  background: rgba(24, 49, 38, 0.74);
+  color: #fffdf5;
+  border-color: transparent;
 }
 
-.intel-flow span {
-  border-radius: 999px;
-}
-
+.intel-flow { display: grid; gap: 0.45rem; }
+.intel-flow span { border-radius: 999px; }
 .compact-note p,
-.intelligence-status-card small {
-  word-break: break-word;
-}
-
-@media (min-width: 520px) {
-  .desktop-frame {
-    font-size: 1rem;
-  }
-}
+.intelligence-status-card small { word-break: break-word; }
