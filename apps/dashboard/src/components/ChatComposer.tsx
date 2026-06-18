@@ -11,6 +11,7 @@ export function ChatComposer({ disabled, onSend, onNewChat }: ChatComposerProps)
   const [input, setInput] = useState("");
   const [partial, setPartial] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [liveMode, setLiveMode] = useState(false);
   const recognition = useMemo(() => createBrowserSpeechRecognition(), []);
 
   async function sendCurrentInput() {
@@ -53,13 +54,22 @@ export function ChatComposer({ disabled, onSend, onNewChat }: ChatComposerProps)
     });
   }
 
+  function toggleLiveMode() {
+    setLiveMode((current) => !current);
+    if (!isListening) toggleListening();
+  }
+
   return (
-    <form className="composer" onSubmit={submit}>
+    <form className={`composer ${liveMode ? "live-mode-on" : ""}`} onSubmit={submit}>
+      <div className="composer-header-actions" aria-label="Chat header controls">
+        {onNewChat && <button type="button" aria-label="Start new topic" title="New topic" onClick={onNewChat}>↺</button>}
+        <button type="button" aria-label="Live mode" title="Live mode" className={liveMode ? "active-live" : ""} onClick={toggleLiveMode}>◉</button>
+      </div>
       <div className="composer-input-wrap">
         <textarea
           value={input}
           disabled={disabled}
-          rows={3}
+          rows={2}
           placeholder="Ask Live Runtime anything..."
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={(event) => {
@@ -70,15 +80,10 @@ export function ChatComposer({ disabled, onSend, onNewChat }: ChatComposerProps)
           }}
         />
         {partial && <span className="voice-partial">{partial}</span>}
-      </div>
-      <div className="composer-actions-row" aria-label="Chat controls">
-        {onNewChat && <button type="button" onClick={onNewChat}>New Chat</button>}
-        <button type="button" className={isListening ? "recording" : ""} onClick={toggleListening}>
-          {isListening ? "Listening" : "Voice"}
-        </button>
-        <button type="submit" disabled={disabled || !input.trim()}>
-          Send
-        </button>
+        <div className="input-inline-actions">
+          <button type="button" aria-label="Dictate" title="Dictate" className={isListening ? "recording" : ""} onClick={toggleListening}>🎙</button>
+          <button type="submit" aria-label="Send" title="Send" disabled={disabled || !input.trim()}>➤</button>
+        </div>
       </div>
     </form>
   );
