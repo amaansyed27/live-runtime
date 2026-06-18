@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createBrowserSpeechRecognition } from "@live-runtime/core";
 import { stopSpeech } from "../lib/tauriBridge";
 
@@ -7,11 +7,12 @@ interface ChatComposerProps {
   onSend(content: string): Promise<void>;
   onNewChat?: () => void;
   compactBar?: boolean;
+  compactAccessory?: ReactNode;
 }
 
 type IconName = "new" | "live" | "mic" | "send";
 
-export function ChatComposer({ disabled, onSend, onNewChat, compactBar = false }: ChatComposerProps) {
+export function ChatComposer({ disabled, onSend, onNewChat, compactBar = false, compactAccessory }: ChatComposerProps) {
   const [input, setInput] = useState("");
   const [partial, setPartial] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -89,6 +90,7 @@ export function ChatComposer({ disabled, onSend, onNewChat, compactBar = false }
     <div className="input-inline-actions">
       <button type="button" aria-label="Dictate" title="Dictate" className={isListening ? "recording" : ""} onClick={toggleDictation}><Icon name="mic" /></button>
       <button type="submit" aria-label="Send" title="Send" disabled={disabled || !input.trim()}><Icon name="send" /></button>
+      {compactAccessory}
     </div>
   );
 
