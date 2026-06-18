@@ -1,0 +1,42 @@
+.voice-settings-card {
+  grid-column: 1 / -1;
+}
+
+.voice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.52rem;
+}
+
+.voice-grid label {
+  display: grid;
+  gap: 0.34rem;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.78rem;
+}
+
+.voice-grid label strong {
+  color: var(--green-700);
+  font-size: 0.72rem;
+}
+
+.voice-grid input[type="range"] {
+  padding: 0;
+  accent-color: var(--green-700);
+}
+
+.status-card,
+.reset-card {
+  grid-column: 1 / -1;
+}
+
+.reset-card button {
+  justify-self: start;
+}
+
+@media (max-width: 640px) {
+  .voice-grid {
+    grid-template-columns: 1fr;
+  }
+}
