@@ -1,0 +1,42 @@
+.composer {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.65rem !important;
+  padding: 0.72rem !important;
+}
+
+.composer-input-wrap {
+  width: 100%;
+}
+
+.composer-input-wrap textarea {
+  min-height: 5rem !important;
+  max-height: 8rem;
+  font-size: 0.96rem;
+}
+
+.composer-actions,
+.composer-actions-row {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.composer-actions-row button,
+.composer-actions button {
+  width: auto !important;
+  min-width: 5.8rem;
+  height: 2.55rem !important;
+  padding: 0 0.9rem !important;
+  flex: 0 0 auto !important;
+}
+
+.composer-actions-row button[type="submit"],
+.composer-actions button[type="submit"] {
+  background: rgba(24, 49, 38, 0.74);
+  color: #fffdf5;
+  border-color: transparent;
+}
