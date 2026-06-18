@@ -118,6 +118,19 @@ pub fn list_memories(app: AppHandle, limit: Option<i64>) -> Result<Vec<MemoryRec
     Ok(records)
 }
 
+#[tauri::command]
+pub fn clear_memory(app: AppHandle) -> Result<MemoryStatus, String> {
+    let connection = open_database(&app)?;
+    connection
+        .execute_batch(
+            "delete from memories;
+             delete from profile_entries;
+             delete from skills;",
+        )
+        .map_err(|error| error.to_string())?;
+    memory_status(app)
+}
+
 fn open_database(app: &AppHandle) -> Result<Connection, String> {
     let path = database_path(app)?;
     let connection = Connection::open(path).map_err(|error| error.to_string())?;
