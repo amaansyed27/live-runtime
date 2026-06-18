@@ -7,7 +7,14 @@ const KEY = "live-runtime.chat.messages";
 const MODEL_KEY = "live-runtime.chat.model";
 const BASE_URL_KEY = "live-runtime.chat.base-url";
 const SPEAK_KEY = "live-runtime.chat.speak";
+const SESSION_META_KEY = "live-runtime.chat.session-meta";
 const RETRIEVAL_TIMEOUT_MS = 1200;
+const IDLE_ARCHIVE_MS = 120 * 60 * 1000;
+const CONTEXT_TOKEN_LIMIT = 250000;
+
+interface SessionMeta {
+  lastMessageAt: number;
+}
 
 export interface RuntimeChatState {
   messages: ChatMessage[];
@@ -57,6 +64,19 @@ export function useRuntimeChat(): RuntimeChatState {
 
   useEffect(() => window.localStorage.setItem(KEY, JSON.stringify(messages)), [messages]);
 
+  useEffect(() => {
+    const meta = readSessionMeta();
+    if (!meta || !hasRealConversation(messages)) return;
+    if (Date.now() - meta.lastMessageAt < IDLE_ARCHIVE_MS) return;
+
+    void archiveSession(baseUrl, messages, "idle-120-minutes").then(() => {
+      const fresh = [createMessage("assistant", "Previous idle chat was archived into long-term memory. New chat started.")];
+      setMessages(fresh);
+      window.localStorage.setItem(KEY, JSON.stringify(fresh));
+      writeSessionMeta(Date.now());
+    });
+  }, [baseUrl]);
+
   const reloadModels = useCallback(async () => {
     try {
       setError(null);
@@ -91,6 +111,7 @@ export function useRuntimeChat(): RuntimeChatState {
     setMessages((current) => [...current, userMessage, assistantMessage]);
     setIsLoading(true);
     setError(null);
+    writeSessionMeta(Date.now());
 
     let notes: ScoredJournalRecord[] = [];
     try {
@@ -100,8 +121,6 @@ export function useRuntimeChat(): RuntimeChatState {
     }
 
     const noteMessage = notes.length > 0 ? createMessage("system", summarizeNotes(notes)) : null;
-    void saveEntry(baseUrl, { kind: "chat", scope: "longTerm", title: "User message", content: text, source: "chat:user", confidence: 1, tags: ["chat", "user"] });
-
     let reply = "";
     try {
       for await (const chunk of client.chat({
@@ -124,7 +143,9 @@ export function useRuntimeChat(): RuntimeChatState {
         setMessages((current) => current.map((message) => message.id === assistantMessage.id ? { ...message, content: reply } : message));
       }
 
-      void saveEntry(baseUrl, { kind: "chat", scope: "longTerm", title: "Assistant reply", content: reply, source: "chat:assistant", confidence: 0.9, tags: ["chat", "assistant", model] });
+      const finalMessages = [...history, userMessage, { ...assistantMessage, content: reply }];
+      writeSessionMeta(Date.now());
+      void archiveIfContextLimitReached(baseUrl, finalMessages, setMessages);
       if (speakResponses) await speakText(reply);
     } catch (cause) {
       if (!abort.signal.aborted) {
@@ -141,6 +162,7 @@ export function useRuntimeChat(): RuntimeChatState {
     const fresh = [createMessage("assistant", "New chat started. What should we work on?")];
     setMessages(fresh);
     window.localStorage.setItem(KEY, JSON.stringify(fresh));
+    writeSessionMeta(Date.now());
   }, []);
 
   const resetAll = useCallback(() => {
@@ -151,6 +173,33 @@ export function useRuntimeChat(): RuntimeChatState {
   }, []);
 
   return { messages, models, model, baseUrl, isLoading, error, speakResponses, setModel, setBaseUrl, setSpeakResponses, reloadModels, send, clear, resetAll };
+}
+
+async function archiveIfContextLimitReached(baseUrl: string, currentMessages: ChatMessage[], setMessages: (messages: ChatMessage[]) => void): Promise<void> {
+  if (estimateTokens(currentMessages) < CONTEXT_TOKEN_LIMIT) return;
+  await archiveSession(baseUrl, currentMessages, "context-250k");
+  const fresh = [createMessage("assistant", "Context limit reached. I archived the previous chat into long-term memory and started fresh.")];
+  setMessages(fresh);
+  window.localStorage.setItem(KEY, JSON.stringify(fresh));
+  writeSessionMeta(Date.now());
+}
+
+async function archiveSession(baseUrl: string, items: ChatMessage[], reason: string): Promise<void> {
+  const transcript = items
+    .filter((message) => message.content.trim())
+    .map((message) => `${message.role.toUpperCase()}: ${message.content.trim()}`)
+    .join("\n\n");
+  if (!transcript.trim()) return;
+
+  await saveEntry(baseUrl, {
+    kind: "chatSession",
+    scope: "longTerm",
+    title: `Archived chat session (${reason})`,
+    content: transcript,
+    source: `chat-session:${reason}`,
+    confidence: 0.95,
+    tags: ["chat-session", reason]
+  });
 }
 
 function summarizeNotes(items: ScoredJournalRecord[]): string {
@@ -167,6 +216,28 @@ function readStoredMessages(): ChatMessage[] {
   } catch {
     return [createMessage("assistant", "Live Runtime is ready.")];
   }
+}
+
+function hasRealConversation(items: ChatMessage[]): boolean {
+  return items.some((message) => message.role === "user" && message.content.trim());
+}
+
+function estimateTokens(items: ChatMessage[]): number {
+  const characters = items.reduce((total, message) => total + message.content.length, 0);
+  return Math.ceil(characters / 4);
+}
+
+function readSessionMeta(): SessionMeta | null {
+  try {
+    const raw = window.localStorage.getItem(SESSION_META_KEY);
+    return raw ? JSON.parse(raw) as SessionMeta : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionMeta(lastMessageAt: number): void {
+  window.localStorage.setItem(SESSION_META_KEY, JSON.stringify({ lastMessageAt }));
 }
 
 function isEmbeddingOnlyModel(model: ModelInfo): boolean {
