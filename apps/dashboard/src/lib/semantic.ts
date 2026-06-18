@@ -1,5 +1,5 @@
-import { buildMemoryIndex, classifyMemoryDraft } from "@live-runtime/core";
-import { listJournal, saveJournal, type JournalDraft, type JournalRecord } from "./journalBridge";
+import { buildMemoryIndex, classifyMemoryDraft, classifyMemoryText } from "@live-runtime/core";
+import { listJournal, saveJournal, searchJournal, type JournalDraft, type JournalRecord } from "./journalBridge";
 
 export const EMBED_MODEL = "nomic-embed-text";
 const EMBED_TIMEOUT_MS = 1600;
@@ -48,8 +48,17 @@ export async function saveEntry(baseUrl: string, draft: JournalDraft): Promise<v
 }
 
 export async function relatedEntries(baseUrl: string, query: string, limit = 6): Promise<ScoredJournalRecord[]> {
-  const records = await listJournal(500);
   const queryIndex = buildMemoryIndex(query);
+  const queryClassification = classifyMemoryText(query);
+  const dbCandidates = await searchJournal({
+    text: query,
+    termHashes: queryIndex.termHashes,
+    topics: queryIndex.topics,
+    classes: queryClassification.index.classes,
+    dynamicClasses: queryClassification.dynamicClasses,
+    limit: Math.max(limit * 8, 32)
+  });
+  const records = dbCandidates.length > 0 ? dbCandidates : await listJournal(500);
   const queryEmbedding = await makeEmbedding(baseUrl, query);
 
   const lexicalMatches = indexedSearch(records, query, queryIndex, Math.max(limit * 3, 12));
@@ -69,19 +78,28 @@ function indexedSearch(records: JournalRecord[], query: string, queryIndex: Retu
   const queryTerms = new Set(queryIndex.terms);
   const queryHashes = new Set(queryIndex.termHashes);
   const queryTopics = new Set(queryIndex.topics);
+  const querySubclasses = new Set(queryIndex.dynamicClasses);
   if (queryTerms.size === 0 && queryHashes.size === 0) return [];
 
   return records
-    .map((record) => ({ record, score: scoreRecord(record, query, queryTerms, queryHashes, queryTopics) }))
+    .map((record) => ({ record, score: scoreRecord(record, query, queryTerms, queryHashes, queryTopics, querySubclasses) }))
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 }
 
-function scoreRecord(record: JournalRecord, query: string, queryTerms: Set<string>, queryHashes: Set<string>, queryTopics: Set<string>): number {
+function scoreRecord(
+  record: JournalRecord,
+  query: string,
+  queryTerms: Set<string>,
+  queryHashes: Set<string>,
+  queryTopics: Set<string>,
+  querySubclasses: Set<string>
+): number {
   const haystack = `${record.title} ${record.content} ${record.tags.join(" ")}`.toLowerCase();
   const recordHashes = new Set([...(record.searchHashes ?? []), ...record.tags.filter((tag) => tag.startsWith("term:")).map((tag) => tag.slice(5))]);
   const recordTopics = new Set(record.tags.filter((tag) => tag.startsWith("topic:")).map((tag) => tag.slice(6)));
+  const recordSubclasses = new Set(record.tags.filter((tag) => tag.startsWith("subclass:")).map((tag) => tag.slice(9)));
   let score = 0;
 
   for (const term of queryTerms) {
@@ -94,6 +112,10 @@ function scoreRecord(record: JournalRecord, query: string, queryTerms: Set<strin
 
   for (const topic of queryTopics) {
     if (recordTopics.has(topic)) score += 0.22;
+  }
+
+  for (const subclass of querySubclasses) {
+    if (recordSubclasses.has(subclass)) score += 0.28;
   }
 
   if (record.contentHash && haystack.includes(query.toLowerCase().trim())) score += 0.18;
