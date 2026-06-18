@@ -7,6 +7,7 @@ import "./scrollbars.css";
 import "./skills.css";
 import "./alpha-polish.css";
 import "./components/companion-window.css";
+import "./components/companion-final-polish.css";
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
