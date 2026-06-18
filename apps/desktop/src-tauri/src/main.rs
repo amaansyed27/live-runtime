@@ -24,6 +24,7 @@ fn main() {
             memory::memory_status,
             memory::save_memory,
             memory::list_memories,
+            memory::search_memories,
             memory::clear_memory
         ])
         .run(tauri::generate_context!())
