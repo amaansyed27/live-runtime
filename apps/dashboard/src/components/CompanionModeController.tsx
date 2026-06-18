@@ -1,4 +1,10 @@
 import { useEffect } from "react";
+import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
+
+const COMPACT_SIZE = new LogicalSize(520, 64);
+const EXPANDED_SIZE = new LogicalSize(340, 410);
+const COMPACT_MIN_SIZE = new LogicalSize(320, 64);
+const EXPANDED_MIN_SIZE = new LogicalSize(300, 92);
 
 const COMPANION_SIZE_FIX_CSS = `
 .floating-panel.companion-bar {
@@ -164,6 +170,21 @@ export function CompanionModeController() {
       document.head.appendChild(style);
     }
 
+    async function resizeWindow(compact: boolean) {
+      try {
+        const win = getCurrentWindow();
+        if (compact) {
+          await win.setMinSize(COMPACT_MIN_SIZE);
+          await win.setSize(COMPACT_SIZE);
+          return;
+        }
+        await win.setMinSize(EXPANDED_MIN_SIZE);
+        await win.setSize(EXPANDED_SIZE);
+      } catch (error) {
+        console.warn("Unable to resize companion window", error);
+      }
+    }
+
     function wireCompanion() {
       ensureStyle();
       const panel = document.querySelector<HTMLElement>(".floating-panel");
@@ -181,6 +202,7 @@ export function CompanionModeController() {
         const compact = panel.classList.toggle("companion-bar");
         button.textContent = compact ? "⌃" : "⌄";
         button.title = compact ? "Restore companion" : "Compact companion";
+        void resizeWindow(compact);
       });
 
       actions.prepend(button);
