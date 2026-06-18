@@ -5,12 +5,14 @@ export interface MemoryIndex {
   terms: string[];
   termHashes: string[];
   topics: string[];
+  dynamicClasses: string[];
   classes: MemoryClass[];
 }
 
 export interface MemoryClassification {
   primaryClass: MemoryClass;
   secondaryClasses: MemoryClass[];
+  dynamicClasses: string[];
   suggestedKind: MemoryKind;
   suggestedScope: MemoryScope;
   importance: number;
@@ -61,6 +63,15 @@ const TOPIC_RULES: Array<{ topic: string; patterns: RegExp[] }> = [
   { topic: "local-models", patterns: [/\bollama\b/i, /\blocal model\b/i, /\bembedding\b/i, /\bvector\b/i, /\bfast\b/i] }
 ];
 
+const DYNAMIC_CLASS_RULES: Array<{ name: string; patterns: RegExp[] }> = [
+  { name: "memory-indexing", patterns: [/\bmemory\b/i, /\bclassifier\b/i, /\bindex\b/i, /\bhash\b/i, /\bretrieval\b/i] },
+  { name: "companion-ui", patterns: [/\bcompanion\b/i, /\bbutton\b/i, /\binput box\b/i, /\balignment\b/i, /\bspacing\b/i, /\bcollaps/i] },
+  { name: "voice-config", patterns: [/\bvoice\b/i, /\btts\b/i, /\bspeech\b/i, /\bnatural\b/i, /\bmic\b/i] },
+  { name: "pc-control", patterns: [/\bpc\b/i, /\bjarvis\b/i, /\bcommand\b/i, /\bopen app\b/i, /\brun command\b/i] },
+  { name: "repo-workflow", patterns: [/\brepo\b/i, /\bgithub\b/i, /\bbranch\b/i, /\bcommit\b/i, /\bpull\b/i, /\bbuild\b/i] },
+  { name: "local-model-runtime", patterns: [/\bollama\b/i, /\blocal model\b/i, /\bembedding\b/i, /\bvector\b/i, /\bmodel\b/i] }
+];
+
 export function classifyMemoryDraft(draft: MemoryClassifiableDraft): { draft: ClassifiedMemoryDraft; classification: MemoryClassification } {
   const text = `${draft.title}\n${draft.content}\n${draft.tags?.join(" ") ?? ""}`;
   const classification = classifyMemoryText(text, draft.kind, draft.scope);
@@ -68,6 +79,7 @@ export function classifyMemoryDraft(draft: MemoryClassifiableDraft): { draft: Cl
   const indexTags = [
     `class:${classification.primaryClass}`,
     ...classification.secondaryClasses.map((klass) => `class:${klass}`),
+    ...classification.dynamicClasses.map((klass) => `subclass:${klass}`),
     ...classification.index.topics.map((topic) => `topic:${topic}`),
     `hash:${classification.index.contentHash}`,
     ...classification.index.termHashes.slice(0, 16).map((hash) => `term:${hash}`)
@@ -100,6 +112,7 @@ export function classifyMemoryText(text: string, requestedKind?: string, request
   return {
     primaryClass: primary.klass,
     secondaryClasses,
+    dynamicClasses: index.dynamicClasses,
     suggestedKind: normalizeKind(requestedKind, primary.kind),
     suggestedScope: normalizeScope(requestedScope, primary.scope),
     importance,
@@ -113,7 +126,10 @@ export function classifyMemoryText(text: string, requestedKind?: string, request
 export function buildMemoryIndex(text: string): MemoryIndex {
   const normalized = normalizeText(text);
   const terms = unique(tokenize(normalized)).slice(0, 48);
-  const topics = TOPIC_RULES.filter((rule) => rule.patterns.some((pattern) => pattern.test(text))).map((rule) => rule.topic);
+  const staticTopics = TOPIC_RULES.filter((rule) => rule.patterns.some((pattern) => pattern.test(text))).map((rule) => rule.topic);
+  const dynamicClasses = deriveDynamicClasses(text);
+  const dynamicTopics = dynamicClasses.map((klass) => `auto-${klass}`);
+  const topics = unique([...staticTopics, ...dynamicTopics]).slice(0, 10);
   const contentHash = stableHash(normalized || text).toString(36);
   const termHashes = unique(terms.map((term) => stableHash(term).toString(36)));
   return {
@@ -121,6 +137,7 @@ export function buildMemoryIndex(text: string): MemoryIndex {
     terms,
     termHashes,
     topics,
+    dynamicClasses,
     classes: []
   };
 }
@@ -139,6 +156,13 @@ export function stableHash(value: string): number {
     hash = Math.imul(hash, 16777619);
   }
   return hash >>> 0;
+}
+
+function deriveDynamicClasses(text: string): string[] {
+  return DYNAMIC_CLASS_RULES
+    .filter((rule) => rule.patterns.some((pattern) => pattern.test(text)))
+    .map((rule) => rule.name)
+    .slice(0, 4);
 }
 
 function normalizeText(text: string): string {
