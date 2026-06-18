@@ -198,9 +198,7 @@ fn initialize_schema(connection: &Connection) -> Result<(), String> {
 
             create index if not exists idx_memories_created_at on memories(created_at desc);
             create index if not exists idx_memories_kind on memories(kind);
-            create index if not exists idx_memories_scope on memories(scope);
-            create index if not exists idx_memories_class on memories(memory_class);
-            create index if not exists idx_memories_content_hash on memories(content_hash);",
+            create index if not exists idx_memories_scope on memories(scope);",
         )
         .map_err(|error| error.to_string())?;
 
