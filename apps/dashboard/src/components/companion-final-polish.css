@@ -31,12 +31,68 @@
   stroke-linejoin: round;
 }
 
-.companion-bar .companion-window-actions {
-  gap: 0 !important;
+.companion-bar .floating-titlebar .titlebar-actions {
+  top: 50% !important;
+  right: 8px !important;
+  transform: translateY(-50%) !important;
 }
 
+.companion-bar .floating-body {
+  padding: 8px 82px 8px 46px !important;
+}
+
+.companion-bar .composer {
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.companion-bar .composer-header-actions {
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.companion-bar .composer-header-actions button,
+.companion-bar .input-inline-actions button,
 .companion-bar .companion-icon-button {
-  width: 30px !important;
-  height: 30px !important;
-  min-width: 30px !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  line-height: 0 !important;
+}
+
+.companion-bar .composer button svg,
+.companion-bar .companion-button-icon {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+}
+
+.companion-bar .input-inline-actions {
+  right: -42px !important;
+  bottom: 50% !important;
+  transform: translateY(50%) !important;
+  align-items: center !important;
+}
+
+.companion-bar .companion-drag-grip {
+  left: 8px !important;
+  top: 50% !important;
+  bottom: auto !important;
+  width: 34px !important;
+  height: 34px !important;
+  transform: translateY(-50%) !important;
+  border-radius: 999px !important;
+}
+
+.companion-bar .companion-drag-grip::before {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 0 !important;
+  background: radial-gradient(circle, rgba(232,247,236,.62) 1.45px, transparent 1.6px) 0 0 / 7px 7px !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
