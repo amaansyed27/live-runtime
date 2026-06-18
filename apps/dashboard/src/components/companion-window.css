@@ -1,0 +1,198 @@
+.companion-window,
+.companion-window * {
+  pointer-events: auto;
+  -webkit-app-region: no-drag;
+}
+
+.companion-window {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  user-select: none;
+}
+
+.companion-window textarea,
+.companion-window input {
+  user-select: text;
+}
+
+.companion-titlebar {
+  cursor: grab;
+}
+
+.companion-titlebar:active,
+.companion-drag-grip:active {
+  cursor: grabbing;
+}
+
+.companion-titlebar .titlebar-actions,
+.companion-titlebar .titlebar-actions * {
+  cursor: default;
+}
+
+.companion-bar {
+  width: 100vw !important;
+  min-width: 100vw !important;
+  max-width: 100vw !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  max-height: 64px !important;
+  display: block !important;
+  overflow: hidden !important;
+  border-radius: 18px !important;
+}
+
+.companion-bar .floating-titlebar {
+  position: absolute !important;
+  inset: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  pointer-events: none !important;
+  z-index: 20;
+}
+
+.companion-bar .floating-titlebar .titlebar-actions {
+  position: absolute !important;
+  top: 5px !important;
+  right: 5px !important;
+  pointer-events: auto !important;
+  z-index: 30;
+}
+
+.companion-bar .floating-titlebar .titlebar-actions > button:not(.companion-bar-toggle) {
+  display: none !important;
+}
+
+.companion-bar .companion-bar-toggle {
+  opacity: 1 !important;
+  transform: none !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  color: rgba(232, 247, 236, .95) !important;
+  background: rgba(12, 19, 17, .72) !important;
+}
+
+.companion-bar .floating-body {
+  width: 100% !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  max-height: 64px !important;
+  padding: 8px 42px 8px 38px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.companion-bar .mini-status,
+.companion-bar .mini-conversation {
+  display: none !important;
+}
+
+.companion-bar .composer {
+  width: 100% !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 7px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.companion-bar .composer-header-actions {
+  position: static !important;
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.companion-bar .composer-header-actions button,
+.companion-bar .input-inline-actions button {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  padding: 0 !important;
+  flex: 0 0 34px !important;
+  border-radius: 999px !important;
+}
+
+.companion-bar .composer-input-wrap {
+  position: relative !important;
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  background: rgba(12, 18, 16, .48) !important;
+  border: 1px solid rgba(180, 244, 200, .18) !important;
+}
+
+.companion-bar .composer-input-wrap textarea {
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  padding: 14px 82px 12px 14px !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  resize: none !important;
+  background: transparent !important;
+}
+
+.companion-bar .input-inline-actions {
+  position: absolute !important;
+  right: 7px !important;
+  bottom: 50% !important;
+  transform: translateY(50%) !important;
+  display: flex !important;
+  gap: 5px !important;
+}
+
+.companion-drag-grip {
+  display: none;
+}
+
+.companion-bar .companion-drag-grip {
+  display: flex;
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 24px;
+  z-index: 40;
+  cursor: grab;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(185, 237, 206, .16);
+  background: rgba(12, 19, 17, .42);
+}
+
+.companion-bar .companion-drag-grip::before {
+  content: "";
+  width: 3px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(232, 247, 236, .55);
+  box-shadow: 6px 0 0 rgba(232, 247, 236, .55);
+  transform: translateX(-3px);
+}
