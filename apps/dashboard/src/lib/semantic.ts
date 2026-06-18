@@ -1,6 +1,7 @@
 import { listJournal, saveJournal, type JournalDraft, type JournalRecord } from "./journalBridge";
 
 export const EMBED_MODEL = "nomic-embed-text";
+const EMBED_TIMEOUT_MS = 1600;
 
 export interface ScoredJournalRecord {
   record: JournalRecord;
@@ -9,10 +10,10 @@ export interface ScoredJournalRecord {
 
 export async function checkEmbeddingModel(baseUrl: string, model = EMBED_MODEL): Promise<boolean | null> {
   try {
-    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/tags`);
+    const response = await fetchWithTimeout(`${baseUrl.replace(/\/$/, "")}/api/tags`, {}, 1800);
     if (!response.ok) return null;
     const payload = await response.json() as { models?: Array<{ name?: string; model?: string }> };
-    return (payload.models ?? []).some((item) => item.name === model || item.model === model);
+    return (payload.models ?? []).some((item) => isSameModel(item.name ?? item.model ?? "", model));
   } catch {
     return null;
   }
@@ -22,11 +23,11 @@ export async function makeEmbedding(baseUrl: string, input: string, model = EMBE
   const text = input.trim();
   if (!text) return null;
   try {
-    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/embed`, {
+    const response = await fetchWithTimeout(`${baseUrl.replace(/\/$/, "")}/api/embed`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model, input: text })
-    });
+    }, EMBED_TIMEOUT_MS);
     if (!response.ok) return null;
     const payload = await response.json() as { embeddings?: number[][] };
     return payload.embeddings?.[0] ?? null;
@@ -45,16 +46,18 @@ export async function saveEntry(baseUrl: string, draft: JournalDraft): Promise<v
 }
 
 export async function relatedEntries(baseUrl: string, query: string, limit = 6): Promise<ScoredJournalRecord[]> {
-  const queryEmbedding = await makeEmbedding(baseUrl, query);
   const records = await listJournal(160);
+  const queryEmbedding = await makeEmbedding(baseUrl, query);
   if (!queryEmbedding) return keywordSearch(records, query, limit);
 
-  return records
+  const semanticMatches = records
     .filter((record) => Array.isArray(record.vector) && record.vector.length === queryEmbedding.length)
     .map((record) => ({ record, score: cosine(queryEmbedding, record.vector ?? []) }))
     .filter((item) => item.score > 0.18)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
+
+  return semanticMatches.length > 0 ? semanticMatches : keywordSearch(records, query, limit);
 }
 
 function keywordSearch(records: JournalRecord[], query: string, limit: number): ScoredJournalRecord[] {
@@ -69,6 +72,22 @@ function keywordSearch(records: JournalRecord[], query: string, limit: number): 
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
+}
+
+function isSameModel(candidate: string, expected: string): boolean {
+  const cleanCandidate = candidate.replace(/:latest$/, "");
+  const cleanExpected = expected.replace(/:latest$/, "");
+  return cleanCandidate === cleanExpected || candidate === expected || candidate === `${expected}:latest`;
+}
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timeout);
+  }
 }
 
 function cosine(left: number[], right: number[]): number {
