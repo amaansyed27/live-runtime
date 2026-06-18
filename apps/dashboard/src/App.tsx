@@ -151,9 +151,11 @@ function CompanionWindow({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) 
     <main className={`floating-panel companion-window ${compact ? "companion-bar" : ""}`}>
       <header className="floating-titlebar companion-titlebar" onPointerDown={compact ? undefined : startDrag}>
         {!compact && <Brand label="Companion" compact draggable={false} />}
-        <div className="titlebar-actions" onPointerDown={(event) => event.stopPropagation()}>
-          <button className="companion-bar-toggle" type="button" title={compact ? "Restore companion" : "Compact companion"} aria-label={compact ? "Restore companion" : "Compact companion"} onClick={() => void setCompanionCompact(!compact)}>{compact ? "↑" : "⌄"}</button>
-          {!compact && <button type="button" title="Hide companion" onClick={() => void hideCompanion()}>×</button>}
+        <div className="titlebar-actions companion-window-actions" onPointerDown={(event) => event.stopPropagation()}>
+          <button className="companion-bar-toggle companion-icon-button" type="button" title={compact ? "Restore companion" : "Compact companion"} aria-label={compact ? "Restore companion" : "Compact companion"} onClick={() => void setCompanionCompact(!compact)}>
+            <ChevronIcon direction={compact ? "up" : "down"} />
+          </button>
+          {!compact && <button className="companion-icon-button" type="button" title="Hide companion" aria-label="Hide companion" onClick={() => void hideCompanion()}><CloseIcon /></button>}
         </div>
       </header>
       {compact && <div className="companion-drag-grip" role="button" aria-label="Drag companion" title="Drag companion" onPointerDown={startGripDrag} />}
@@ -163,6 +165,23 @@ function CompanionWindow({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) 
         <ChatComposer disabled={chat.isLoading} onSend={chat.send} onNewChat={chat.clear} />
       </section>
     </main>
+  );
+}
+
+function ChevronIcon({ direction }: { direction: "up" | "down" }) {
+  return (
+    <svg className="companion-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d={direction === "up" ? "m7 14 5-5 5 5" : "m7 10 5 5 5-5"} />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg className="companion-button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M7 7l10 10" />
+      <path d="M17 7 7 17" />
+    </svg>
   );
 }
 
