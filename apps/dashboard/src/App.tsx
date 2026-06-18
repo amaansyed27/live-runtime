@@ -1,10 +1,11 @@
 import { useEffect, useState, type PointerEvent } from "react";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
+import { getBrowserVoiceOptions, type BrowserVoiceOption, type VoiceSettings } from "@live-runtime/core";
 import { ChatComposer } from "./components/ChatComposer";
 import { IntelligenceStatus } from "./components/IntelligenceStatus";
 import { MessageBubble } from "./components/MessageBubble";
 import { SignalCard } from "./components/SignalCard";
-import { getRuntimeStatus, hideCompanion, hideToTray, showCompanion, stopSpeech } from "./lib/tauriBridge";
+import { getRuntimeStatus, hideCompanion, hideToTray, readVoiceSettings, showCompanion, speakText, stopSpeech, writeVoiceSettings } from "./lib/tauriBridge";
 import { useRuntimeChat } from "./hooks/useRuntimeChat";
 
 const COMPANION_ENABLED_KEY = "live-runtime.companion.enabled";
@@ -62,6 +63,8 @@ export function App() {
   const [automations, setAutomations] = useState<AutomationItem[]>(() => readAutomations());
   const [skills, setSkills] = useState<SkillItem[]>(() => readSkills());
   const [searchProvider, setSearchProvider] = useState(() => window.localStorage.getItem(SEARCH_PROVIDER_KEY) ?? "https://searx.be");
+  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(() => readVoiceSettings());
+  const [browserVoices, setBrowserVoices] = useState<BrowserVoiceOption[]>([]);
   const [automationDraft, setAutomationDraft] = useState({ title: "", prompt: "", schedule: "" });
 
   useEffect(() => {
@@ -78,6 +81,18 @@ export function App() {
   useEffect(() => { window.localStorage.setItem(AUTOMATIONS_KEY, JSON.stringify(automations)); }, [automations]);
   useEffect(() => { window.localStorage.setItem(SKILLS_KEY, JSON.stringify(skills)); }, [skills]);
   useEffect(() => { window.localStorage.setItem(SEARCH_PROVIDER_KEY, searchProvider); }, [searchProvider]);
+  useEffect(() => { writeVoiceSettings(voiceSettings); }, [voiceSettings]);
+
+  useEffect(() => {
+    const loadVoices = () => setBrowserVoices(getBrowserVoiceOptions());
+    loadVoices();
+    const timer = window.setTimeout(loadVoices, 300);
+    if ("speechSynthesis" in window) window.speechSynthesis.onvoiceschanged = loadVoices;
+    return () => {
+      window.clearTimeout(timer);
+      if ("speechSynthesis" in window) window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
 
   if (windowLabel === "companion") {
     return <CompanionWindow chat={chat} />;
@@ -101,7 +116,25 @@ export function App() {
           <button className={page === "intelligence" ? "active" : ""} type="button" title="Personal memory engine" onClick={() => setPage("intelligence")}>Intelligence</button>
         </nav>
         {page === "chat" && <ChatPage chat={chat} />}
-        {page === "settings" && <SettingsPage chat={chat} status={status} shortcut={shortcut} setShortcut={setShortcut} companionEnabled={companionEnabled} setCompanionEnabled={setCompanionEnabled} theme={theme} setTheme={setTheme} startAtLogin={startAtLogin} setStartAtLogin={setStartAtLogin} autoStartOllama={autoStartOllama} setAutoStartOllama={setAutoStartOllama} />}
+        {page === "settings" && (
+          <SettingsPage
+            chat={chat}
+            status={status}
+            shortcut={shortcut}
+            setShortcut={setShortcut}
+            companionEnabled={companionEnabled}
+            setCompanionEnabled={setCompanionEnabled}
+            theme={theme}
+            setTheme={setTheme}
+            startAtLogin={startAtLogin}
+            setStartAtLogin={setStartAtLogin}
+            autoStartOllama={autoStartOllama}
+            setAutoStartOllama={setAutoStartOllama}
+            voiceSettings={voiceSettings}
+            setVoiceSettings={setVoiceSettings}
+            browserVoices={browserVoices}
+          />
+        )}
         {page === "automation" && <AutomationPage automations={automations} setAutomations={setAutomations} draft={automationDraft} setDraft={setAutomationDraft} />}
         {page === "skills" && <SkillsPage skills={skills} setSkills={setSkills} searchProvider={searchProvider} setSearchProvider={setSearchProvider} />}
         {page === "intelligence" && <IntelligencePage baseUrl={chat.baseUrl} />}
@@ -207,8 +240,35 @@ function ChatPage({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) {
   return <section className="page-panel chat-page"><div className="page-hero"><p className="eyebrow">Local AI</p><h1>Ask anything.</h1><span>Saved until New Chat.</span></div>{chat.error && <div className="error-banner">{chat.error}</div>}<section className="conversation" aria-label="Conversation">{chat.messages.map((message) => <MessageBubble key={message.id} message={message} />)}</section><ChatComposer disabled={chat.isLoading} onSend={chat.send} onNewChat={chat.clear} /></section>;
 }
 
-function SettingsPage({ chat, status, shortcut, setShortcut, companionEnabled, setCompanionEnabled, theme, setTheme, startAtLogin, setStartAtLogin, autoStartOllama, setAutoStartOllama }: { chat: ReturnType<typeof useRuntimeChat>; status: { platform: string; arch: string; speechOutput: string; trayEnabled: boolean }; shortcut: string; setShortcut(value: string): void; companionEnabled: boolean; setCompanionEnabled(value: boolean | ((current: boolean) => boolean)): void; theme: ThemeMode; setTheme(value: ThemeMode): void; startAtLogin: boolean; setStartAtLogin(value: boolean): void; autoStartOllama: boolean; setAutoStartOllama(value: boolean): void; }) {
-  return <section className="page-panel settings-page"><div className="page-header"><p className="eyebrow">Settings</p><h2>Preferences</h2></div><div className="settings-grid"><section className="settings-card"><label htmlFor="theme">Theme <Tip text="System follows your OS theme." /></label><select id="theme" value={theme} onChange={(event) => setTheme(event.target.value as ThemeMode)} title="Choose app theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark mint</option></select></section><section className="settings-card"><label htmlFor="baseUrl">Ollama URL <Tip text="Default local Ollama server." /></label><input id="baseUrl" title="Ollama server URL" value={chat.baseUrl} onChange={(event) => chat.setBaseUrl(event.target.value)} /></section><section className="settings-card"><div className="section-title-row"><label htmlFor="model">Model <Tip text="Pick an installed Ollama model." /></label><button type="button" title="Reload installed models" onClick={() => void chat.reloadModels()}>Refresh</button></div><select id="model" value={chat.model} onChange={(event) => chat.setModel(event.target.value)} title="Selected model">{chat.models.length === 0 && <option value={chat.model}>{chat.model}</option>}{chat.models.map((model) => <option key={model.name} value={model.name}>{model.name}</option>)}</select></section><section className="settings-card toggle-card"><label title="Show or hide the floating companion window"><input type="checkbox" checked={companionEnabled} onChange={(event) => setCompanionEnabled(event.target.checked)} />Companion <Tip text="Floating mini chat window." /></label><button type="button" title="Toggle companion window" onClick={() => setCompanionEnabled((value) => !value)}>{companionEnabled ? "Disable" : "Enable"}</button></section><section className="settings-card"><label htmlFor="shortcut">Shortcut <Tip text="Saved now. Global shortcut wiring comes next." /></label><input id="shortcut" title="Companion shortcut" value={shortcut} onChange={(event) => setShortcut(event.target.value)} /></section><section className="settings-card toggle-card"><label title="Launch setting is saved locally for now"><input type="checkbox" checked={startAtLogin} onChange={(event) => setStartAtLogin(event.target.checked)} />Start at login</label></section><section className="settings-card toggle-card"><label title="Ollama supervisor is the next native layer"><input type="checkbox" checked={autoStartOllama} onChange={(event) => setAutoStartOllama(event.target.checked)} />Start Ollama</label></section><section className="settings-card toggle-card"><label><input type="checkbox" checked={chat.speakResponses} onChange={(event) => chat.setSpeakResponses(event.target.checked)} />Voice replies</label><button type="button" title="Stop current speech" onClick={() => void stopSpeech()}>Stop</button></section><section className="settings-card"><div className="status-grid"><SignalCard label="Host" value={status.platform} tone="good" /><SignalCard label="Arch" value={status.arch} /><SignalCard label="Speech" value={status.speechOutput} tone="good" /><SignalCard label="Tray" value={status.trayEnabled ? "on" : "web"} /></div></section></div></section>;
+function SettingsPage({ chat, status, shortcut, setShortcut, companionEnabled, setCompanionEnabled, theme, setTheme, startAtLogin, setStartAtLogin, autoStartOllama, setAutoStartOllama, voiceSettings, setVoiceSettings, browserVoices }: { chat: ReturnType<typeof useRuntimeChat>; status: { platform: string; arch: string; speechOutput: string; trayEnabled: boolean }; shortcut: string; setShortcut(value: string): void; companionEnabled: boolean; setCompanionEnabled(value: boolean | ((current: boolean) => boolean)): void; theme: ThemeMode; setTheme(value: ThemeMode): void; startAtLogin: boolean; setStartAtLogin(value: boolean): void; autoStartOllama: boolean; setAutoStartOllama(value: boolean): void; voiceSettings: VoiceSettings; setVoiceSettings(value: VoiceSettings | ((current: VoiceSettings) => VoiceSettings)): void; browserVoices: BrowserVoiceOption[]; }) {
+  const updateVoice = (patch: Partial<VoiceSettings>) => setVoiceSettings((current) => ({ ...current, ...patch }));
+  const voiceNameControl = voiceSettings.engine === "browser" ? (
+    <select id="voiceName" value={voiceSettings.voiceName} onChange={(event) => updateVoice({ voiceName: event.target.value })} title="Browser voice">
+      <option value="">Auto-pick natural voice</option>
+      {browserVoices.map((voice) => <option key={`${voice.name}-${voice.lang}`} value={voice.name}>{voice.name} · {voice.lang}</option>)}
+    </select>
+  ) : (
+    <input id="voiceName" value={voiceSettings.voiceName} onChange={(event) => updateVoice({ voiceName: event.target.value })} placeholder="Optional OS voice name" title="Native OS voice name" />
+  );
+
+  return (
+    <section className="page-panel settings-page">
+      <div className="page-header"><p className="eyebrow">Settings</p><h2>Preferences</h2></div>
+      <div className="settings-grid">
+        <section className="settings-card"><label htmlFor="theme">Theme <Tip text="System follows your OS theme." /></label><select id="theme" value={theme} onChange={(event) => setTheme(event.target.value as ThemeMode)} title="Choose app theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark mint</option></select></section>
+        <section className="settings-card"><label htmlFor="baseUrl">Ollama URL <Tip text="Default local Ollama server." /></label><input id="baseUrl" title="Ollama server URL" value={chat.baseUrl} onChange={(event) => chat.setBaseUrl(event.target.value)} /></section>
+        <section className="settings-card"><div className="section-title-row"><label htmlFor="model">Model <Tip text="Pick an installed Ollama model." /></label><button type="button" title="Reload installed models" onClick={() => void chat.reloadModels()}>Refresh</button></div><select id="model" value={chat.model} onChange={(event) => chat.setModel(event.target.value)} title="Selected model">{chat.models.length === 0 && <option value={chat.model}>{chat.model}</option>}{chat.models.map((model) => <option key={model.name} value={model.name}>{model.name}</option>)}</select></section>
+        <section className="settings-card toggle-card"><label title="Show or hide the floating companion window"><input type="checkbox" checked={companionEnabled} onChange={(event) => setCompanionEnabled(event.target.checked)} />Companion <Tip text="Floating mini chat window." /></label><button type="button" title="Toggle companion window" onClick={() => setCompanionEnabled((value) => !value)}>{companionEnabled ? "Disable" : "Enable"}</button></section>
+        <section className="settings-card toggle-card"><label title="Read assistant replies aloud"><input type="checkbox" checked={chat.speakResponses} onChange={(event) => chat.setSpeakResponses(event.target.checked)} />Speak replies <Tip text="Reads assistant responses aloud." /></label><button type="button" title="Stop current speech" onClick={() => void stopSpeech()}>Stop voice</button></section>
+        <section className="settings-card voice-settings-card"><div className="section-title-row"><label htmlFor="speechEngine">Voice output <Tip text="Use Browser for more natural Microsoft/Google voices if available." /></label><button type="button" title="Preview voice" onClick={() => void speakText("Voice preview. Live Runtime is ready.", voiceSettings)}>Test</button></div><div className="voice-grid"><label htmlFor="speechEngine">Engine<select id="speechEngine" value={voiceSettings.engine} onChange={(event) => updateVoice({ engine: event.target.value as VoiceSettings["engine"] })} title="Speech engine"><option value="native">Native OS</option><option value="browser">Browser natural voices</option></select></label><label htmlFor="voiceName">Voice{voiceNameControl}</label><label htmlFor="voiceRate">Rate <strong>{voiceSettings.rate.toFixed(2)}x</strong><input id="voiceRate" type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.rate} onChange={(event) => updateVoice({ rate: Number(event.target.value) })} /></label><label htmlFor="voicePitch">Pitch <strong>{voiceSettings.pitch.toFixed(2)}x</strong><input id="voicePitch" type="range" min="0.5" max="1.5" step="0.05" value={voiceSettings.pitch} onChange={(event) => updateVoice({ pitch: Number(event.target.value) })} /></label><label htmlFor="voiceVolume">Volume <strong>{Math.round(voiceSettings.volume * 100)}%</strong><input id="voiceVolume" type="range" min="0" max="1" step="0.05" value={voiceSettings.volume} onChange={(event) => updateVoice({ volume: Number(event.target.value) })} /></label></div><small>{voiceSettings.engine === "browser" ? `${browserVoices.length} browser voices detected. Natural output depends on installed WebView/Edge voices.` : "Native mode uses macOS say, Windows System.Speech, or Linux spd-say/espeak."}</small></section>
+        <section className="settings-card"><label htmlFor="shortcut">Shortcut <Tip text="Saved now. Global shortcut wiring comes next." /></label><input id="shortcut" title="Companion shortcut" value={shortcut} onChange={(event) => setShortcut(event.target.value)} /></section>
+        <section className="settings-card toggle-card"><label title="Launch setting is saved locally for now"><input type="checkbox" checked={startAtLogin} onChange={(event) => setStartAtLogin(event.target.checked)} />Start at login</label></section>
+        <section className="settings-card toggle-card"><label title="Ollama supervisor is the next native layer"><input type="checkbox" checked={autoStartOllama} onChange={(event) => setAutoStartOllama(event.target.checked)} />Auto-start Ollama</label></section>
+        <section className="settings-card status-card"><span>Runtime</span><div className="status-grid"><SignalCard label="Platform" value={status.platform} tone="good" /><SignalCard label="Arch" value={status.arch} /><SignalCard label="Speech" value={status.speechOutput} /><SignalCard label="Tray" value={status.trayEnabled ? "enabled" : "off"} tone={status.trayEnabled ? "good" : "warn"} /></div></section>
+        <section className="settings-card reset-card"><span>Reset</span><small>Clears local chat, memories, settings, routines, and saved preferences.</small><button type="button" title="Reset all local app data" onClick={() => chat.resetAll()}>Clear all local data</button></section>
+      </div>
+    </section>
+  );
 }
 
 function AutomationPage({ automations, setAutomations, draft, setDraft }: { automations: AutomationItem[]; setAutomations(value: AutomationItem[] | ((current: AutomationItem[]) => AutomationItem[])): void; draft: { title: string; prompt: string; schedule: string }; setDraft(value: { title: string; prompt: string; schedule: string }): void; }) {
