@@ -55,7 +55,6 @@ export function ChatComposer({ disabled, onSend, onNewChat }: ChatComposerProps)
 
   return (
     <form className="composer" onSubmit={submit}>
-      {onNewChat && <div className="composer-toolbar" aria-label="Chat controls"><button type="button" onClick={onNewChat}>New Chat</button></div>}
       <div className="composer-input-wrap">
         <textarea
           value={input}
@@ -72,7 +71,8 @@ export function ChatComposer({ disabled, onSend, onNewChat }: ChatComposerProps)
         />
         {partial && <span className="voice-partial">{partial}</span>}
       </div>
-      <div className="composer-actions">
+      <div className="composer-actions-row" aria-label="Chat controls">
+        {onNewChat && <button type="button" onClick={onNewChat}>New Chat</button>}
         <button type="button" className={isListening ? "recording" : ""} onClick={toggleListening}>
           {isListening ? "Listening" : "Voice"}
         </button>
