@@ -21,8 +21,8 @@ pub fn runtime_status() -> RuntimeStatus {
 }
 
 #[tauri::command]
-pub fn speak_text(text: String) -> Result<(), String> {
-    crate::speech::speak(&text)
+pub fn speak_text(text: String, settings: Option<crate::speech::SpeechSettings>) -> Result<(), String> {
+    crate::speech::speak(&text, settings)
 }
 
 #[tauri::command]
