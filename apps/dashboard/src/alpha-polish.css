@@ -60,8 +60,9 @@ textarea {
 .settings-grid,
 .automation-layout,
 .skills-layout,
-.intelligence-grid,
-.intelligence-status-grid { gap: 0.72rem; }
+.intelligence-layout {
+  gap: 0.55rem;
+}
 
 .settings-card,
 .automation-card,
@@ -79,9 +80,51 @@ textarea {
 .intel-hero,
 .intel-flow,
 .compact-note {
-  border-radius: 0.62rem;
-  background: rgba(20, 29, 26, 0.66);
   box-shadow: none;
+}
+
+.settings-card,
+.automation-card,
+.compact-note,
+.skill-card,
+.skill-hero,
+.intel-grid article,
+.intel-hero {
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  background: transparent;
+  padding: 0.72rem 0.2rem;
+}
+
+.settings-card + .settings-card,
+.automation-card + .automation-card,
+.skill-card + .skill-card,
+.intel-grid article + article,
+.compact-note {
+  border-top: 1px solid var(--line);
+}
+
+.status-grid,
+.intel-status,
+.skill-grid,
+.intel-grid {
+  gap: 0.52rem;
+}
+
+.signal-card,
+.intel-status article {
+  border-radius: 0.52rem;
+  background: rgba(20, 29, 26, 0.5);
+}
+
+.compact-note {
+  margin-top: 0.2rem;
+}
+
+.compact-note p {
+  margin-bottom: 0;
 }
 
 .signal-card strong,
@@ -153,4 +196,19 @@ textarea {
 .intel-flow { display: grid; gap: 0.45rem; }
 .intel-flow span { border-radius: 999px; }
 .compact-note p,
-.intelligence-status-card small { word-break: break-word; }
+.intelligence-status-card small,
+.intel-status .wide strong { word-break: break-word; }
+
+.memory-reset {
+  display: grid;
+  gap: 0.44rem;
+}
+
+.memory-reset button {
+  justify-self: start;
+}
+
+.danger-soft {
+  color: #ffc7b8;
+  border-color: rgba(255, 138, 110, 0.28);
+}
