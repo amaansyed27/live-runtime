@@ -12,14 +12,14 @@ export function SettingsResetInjector() {
       card.className = "settings-card reset-card";
       card.innerHTML = `
         <span>Data</span>
-        <strong>Factory reset</strong>
-        <p>Restores Live Runtime to a fresh local state.</p>
-        <button type="button" class="danger-soft">Factory Reset</button>
+        <strong>Reset Everything</strong>
+        <p>Deletes local chats, memories, vectors, profile entries, skills, routines, settings, and cached app state.</p>
+        <button type="button" class="danger-soft">Reset Everything</button>
       `;
 
       const button = card.querySelector("button");
       button?.addEventListener("click", async () => {
-        const confirmed = window.confirm("Factory reset Live Runtime on this device?");
+        const confirmed = window.confirm("Delete all Live Runtime local data on this device and return to factory state?");
         if (!confirmed) return;
         await clearJournal();
         Object.keys(window.localStorage)
@@ -28,12 +28,17 @@ export function SettingsResetInjector() {
         window.location.reload();
       });
 
-      grid.appendChild(card);
+      grid.prepend(card);
     }
 
     mount();
-    const timer = window.setInterval(mount, 500);
-    return () => window.clearInterval(timer);
+    const observer = new MutationObserver(mount);
+    observer.observe(document.body, { childList: true, subtree: true });
+    const timer = window.setInterval(mount, 350);
+    return () => {
+      observer.disconnect();
+      window.clearInterval(timer);
+    };
   }, []);
 
   return null;
