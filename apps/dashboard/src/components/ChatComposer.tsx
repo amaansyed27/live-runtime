@@ -6,11 +6,12 @@ interface ChatComposerProps {
   disabled?: boolean;
   onSend(content: string): Promise<void>;
   onNewChat?: () => void;
+  compactBar?: boolean;
 }
 
 type IconName = "new" | "live" | "mic" | "send";
 
-export function ChatComposer({ disabled, onSend, onNewChat }: ChatComposerProps) {
+export function ChatComposer({ disabled, onSend, onNewChat, compactBar = false }: ChatComposerProps) {
   const [input, setInput] = useState("");
   const [partial, setPartial] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -84,8 +85,35 @@ export function ChatComposer({ disabled, onSend, onNewChat }: ChatComposerProps)
     setPartial("");
   }
 
+  const inputActions = (
+    <div className="input-inline-actions">
+      <button type="button" aria-label="Dictate" title="Dictate" className={isListening ? "recording" : ""} onClick={toggleDictation}><Icon name="mic" /></button>
+      <button type="submit" aria-label="Send" title="Send" disabled={disabled || !input.trim()}><Icon name="send" /></button>
+    </div>
+  );
+
+  const inputField = (
+    <div className="composer-input-wrap">
+      <textarea
+        value={input}
+        disabled={disabled}
+        rows={2}
+        placeholder="Ask Live Runtime anything..."
+        onChange={(event) => setInput(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            void sendCurrentInput();
+          }
+        }}
+      />
+      {partial && <span className="voice-partial">{partial}</span>}
+      {!compactBar && inputActions}
+    </div>
+  );
+
   return (
-    <form className={`composer ${liveMode ? "live-mode-on" : ""}`} onSubmit={submit}>
+    <form className={`composer ${liveMode ? "live-mode-on" : ""} ${compactBar ? "composer-compact-bar" : ""}`} onSubmit={submit}>
       <div className="composer-header-actions" aria-label="Chat header controls">
         {onNewChat && <button type="button" aria-label="Start new topic" title="New topic" onClick={onNewChat}><Icon name="new" /></button>}
         <button type="button" aria-label="Live mode" title="Live mode" className={liveMode ? "active-live" : ""} onClick={toggleLiveMode}><Icon name="live" /></button>
@@ -97,28 +125,12 @@ export function ChatComposer({ disabled, onSend, onNewChat }: ChatComposerProps)
           <strong>{isListening ? "Listening" : "Live mode"}</strong>
           <small>{partial || "Speak naturally. I will stop talking when you interrupt."}</small>
         </div>
-      ) : (
-        <div className="composer-input-wrap">
-          <textarea
-            value={input}
-            disabled={disabled}
-            rows={2}
-            placeholder="Ask Live Runtime anything..."
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                void sendCurrentInput();
-              }
-            }}
-          />
-          {partial && <span className="voice-partial">{partial}</span>}
-          <div className="input-inline-actions">
-            <button type="button" aria-label="Dictate" title="Dictate" className={isListening ? "recording" : ""} onClick={toggleDictation}><Icon name="mic" /></button>
-            <button type="submit" aria-label="Send" title="Send" disabled={disabled || !input.trim()}><Icon name="send" /></button>
-          </div>
-        </div>
-      )}
+      ) : compactBar ? (
+        <>
+          {inputField}
+          {inputActions}
+        </>
+      ) : inputField}
     </form>
   );
 }
