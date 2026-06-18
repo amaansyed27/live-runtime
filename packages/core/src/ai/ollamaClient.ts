@@ -35,14 +35,12 @@ export class OllamaClient implements AiProvider {
     }
 
     const data = (await response.json()) as OllamaTagsResponse;
-    return (data.models ?? [])
-      .filter((model) => model.name && !model.name.toLowerCase().includes(":cloud"))
-      .map((model) => ({
-        name: model.name,
-        size: model.size,
-        modifiedAt: model.modified_at,
-        family: model.details?.family
-      }));
+    return (data.models ?? []).map((model) => ({
+      name: model.name,
+      size: model.size,
+      modifiedAt: model.modified_at,
+      family: model.details?.family
+    }));
   }
 
   async *chat(request: ChatRequest): AsyncIterable<ChatChunk> {
@@ -59,7 +57,10 @@ export class OllamaClient implements AiProvider {
     });
 
     if (!response.ok) {
-      throw new Error(`Ollama chat failed: ${response.status}`);
+      const suffix = request.model.toLowerCase().includes(":cloud") && response.status === 403
+        ? " Cloud model access was denied by Ollama. Sign in to Ollama or choose a local model."
+        : "";
+      throw new Error(`Ollama chat failed: ${response.status}.${suffix}`);
     }
 
     if (!response.body) {
