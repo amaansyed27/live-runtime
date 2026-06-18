@@ -10,6 +10,16 @@ const CHEVRON_DOWN_ICON = `<svg viewBox="0 0 20 20" aria-hidden="true" focusable
 const CHEVRON_UP_ICON = `<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5.5 12.5 10 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
 
 const COMPANION_DOCK_CSS = `
+.companion-window .floating-titlebar,
+.companion-window .titlebar-actions,
+.companion-window .titlebar-actions button,
+.companion-window .floating-body,
+.companion-window .composer,
+.companion-window .composer button,
+.companion-window textarea {
+  pointer-events: auto !important;
+}
+
 .companion-window .companion-bar-toggle {
   display: grid !important;
   place-items: center !important;
@@ -56,7 +66,7 @@ const COMPANION_DOCK_CSS = `
   padding: 0 !important;
   border: 0 !important;
   background: transparent !important;
-  pointer-events: none;
+  pointer-events: none !important;
   z-index: 60;
 }
 
@@ -64,7 +74,7 @@ const COMPANION_DOCK_CSS = `
   position: absolute !important;
   top: 5px !important;
   right: 5px !important;
-  pointer-events: auto;
+  pointer-events: auto !important;
   z-index: 70;
 }
 
@@ -166,7 +176,7 @@ const COMPANION_DOCK_CSS = `
   display: block;
   position: absolute;
   inset: 0 auto 0 0;
-  width: 14px;
+  width: 24px;
   z-index: 80;
   cursor: grab;
 }
@@ -178,6 +188,11 @@ function setToggleIcon(button: HTMLButtonElement, compact: boolean) {
   button.innerHTML = compact ? CHEVRON_UP_ICON : CHEVRON_DOWN_ICON;
   button.title = compact ? "Restore companion" : "Compact companion";
   button.setAttribute("aria-label", compact ? "Restore companion" : "Compact companion");
+}
+
+function isInteractiveTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  return Boolean(target.closest("button, textarea, input, select, a, [role='button'], .titlebar-actions, .composer-input-wrap, .input-inline-actions, .composer-header-actions"));
 }
 
 export function CompanionModeController() {
@@ -217,8 +232,9 @@ export function CompanionModeController() {
     function wireCompanion() {
       ensureStyle();
       const panel = document.querySelector<HTMLElement>(".floating-panel.companion-window");
+      const titlebar = document.querySelector<HTMLElement>(".floating-titlebar");
       const actions = document.querySelector<HTMLElement>(".floating-titlebar .titlebar-actions");
-      if (!panel || !actions) return;
+      if (!panel || !titlebar || !actions) return;
 
       let button = actions.querySelector<HTMLButtonElement>(".companion-bar-toggle");
       if (!button) {
@@ -228,13 +244,19 @@ export function CompanionModeController() {
       }
 
       setToggleIcon(button, panel.classList.contains("companion-bar"));
+      button.onclick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        event.nativeEvent?.stopImmediatePropagation?.();
+        toggle(panel, button);
+      };
 
-      if (!button.dataset.companionToggleWired) {
-        button.dataset.companionToggleWired = "true";
-        button.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          toggle(panel, button);
+      if (!titlebar.dataset.companionTitleDragWired) {
+        titlebar.dataset.companionTitleDragWired = "true";
+        titlebar.addEventListener("pointerdown", (event) => {
+          if (event.button !== 0) return;
+          if (isInteractiveTarget(event.target)) return;
+          void getCurrentWindow().startDragging();
         });
       }
 
