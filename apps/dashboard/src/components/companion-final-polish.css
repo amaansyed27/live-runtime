@@ -38,10 +38,11 @@
 }
 
 .companion-bar .floating-body {
-  padding: 8px 92px 8px 46px !important;
+  padding: 8px 50px 8px 46px !important;
 }
 
-.companion-bar .composer {
+.companion-bar .composer.composer-compact-bar {
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
   align-items: center !important;
   gap: 8px !important;
 }
@@ -49,6 +50,28 @@
 .companion-bar .composer-header-actions {
   align-items: center !important;
   gap: 6px !important;
+}
+
+.companion-bar .composer-compact-bar .composer-input-wrap {
+  grid-column: 2 !important;
+  overflow: hidden !important;
+}
+
+.companion-bar .composer-compact-bar .composer-input-wrap textarea {
+  padding: 14px 14px 12px 14px !important;
+}
+
+.companion-bar .composer-compact-bar .input-inline-actions {
+  position: static !important;
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  z-index: auto !important;
 }
 
 .companion-bar .composer-header-actions button,
@@ -71,23 +94,12 @@
   display: block !important;
 }
 
-.companion-bar .input-inline-actions {
-  right: -42px !important;
-  bottom: 50% !important;
-  transform: translateY(50%) !important;
-  align-items: center !important;
-}
-
-.companion-bar .input-inline-actions button[aria-label="Dictate"] {
-  transform: translateX(1px) !important;
-}
-
+.companion-bar .input-inline-actions button[aria-label="Dictate"],
 .companion-bar .input-inline-actions button[type="submit"] {
-  transform: translateX(0) !important;
+  transform: none !important;
 }
 
 .companion-bar .companion-window-actions {
-  right: 8px !important;
   gap: 0 !important;
 }
 
