@@ -16,6 +16,15 @@ export interface JournalDraft {
   vector?: number[];
 }
 
+export interface JournalSearchQuery {
+  text: string;
+  termHashes?: string[];
+  topics?: string[];
+  classes?: string[];
+  dynamicClasses?: string[];
+  limit?: number;
+}
+
 export interface JournalRecord {
   id: string;
   kind: string;
@@ -50,6 +59,11 @@ export async function saveJournal(draft: JournalDraft): Promise<void> {
 export async function listJournal(limit = 120): Promise<JournalRecord[]> {
   if (!isTauriRuntime()) return [];
   return invoke<JournalRecord[]>("list_memories", { limit });
+}
+
+export async function searchJournal(query: JournalSearchQuery): Promise<JournalRecord[]> {
+  if (!isTauriRuntime()) return [];
+  return invoke<JournalRecord[]>("search_memories", { query });
 }
 
 export async function getJournalStatus(): Promise<JournalStatus | null> {
