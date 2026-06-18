@@ -14,9 +14,9 @@ const AUTO_OLLAMA_KEY = "live-runtime.auto-ollama";
 const AUTOMATIONS_KEY = "live-runtime.automations";
 const SKILLS_KEY = "live-runtime.skills";
 const SEARCH_PROVIDER_KEY = "live-runtime.search.provider";
-const COMPANION_COMPACT_SIZE = new LogicalSize(460, 64);
+const COMPANION_COMPACT_SIZE = new LogicalSize(520, 64);
 const COMPANION_EXPANDED_SIZE = new LogicalSize(340, 410);
-const COMPANION_COMPACT_MIN_SIZE = new LogicalSize(430, 64);
+const COMPANION_COMPACT_MIN_SIZE = new LogicalSize(480, 64);
 const COMPANION_EXPANDED_MIN_SIZE = new LogicalSize(300, 92);
 
 type Page = "chat" | "settings" | "automation" | "skills" | "intelligence";
@@ -147,22 +147,28 @@ function CompanionWindow({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) 
     });
   }
 
+  const compactRestoreButton = (
+    <button className="companion-bar-toggle companion-icon-button" type="button" title="Restore companion" aria-label="Restore companion" onClick={() => void setCompanionCompact(false)}>
+      <ChevronIcon direction="up" />
+    </button>
+  );
+
   return (
     <main className={`floating-panel companion-window ${compact ? "companion-bar" : ""}`}>
       <header className="floating-titlebar companion-titlebar" onPointerDown={compact ? undefined : startDrag}>
         {!compact && <Brand label="Companion" compact draggable={false} />}
-        <div className="titlebar-actions companion-window-actions" onPointerDown={(event) => event.stopPropagation()}>
-          <button className="companion-bar-toggle companion-icon-button" type="button" title={compact ? "Restore companion" : "Compact companion"} aria-label={compact ? "Restore companion" : "Compact companion"} onClick={() => void setCompanionCompact(!compact)}>
-            <ChevronIcon direction={compact ? "up" : "down"} />
+        {!compact && <div className="titlebar-actions companion-window-actions" onPointerDown={(event) => event.stopPropagation()}>
+          <button className="companion-bar-toggle companion-icon-button" type="button" title="Compact companion" aria-label="Compact companion" onClick={() => void setCompanionCompact(true)}>
+            <ChevronIcon direction="down" />
           </button>
-          {!compact && <button className="companion-icon-button" type="button" title="Hide companion" aria-label="Hide companion" onClick={() => void hideCompanion()}><CloseIcon /></button>}
-        </div>
+          <button className="companion-icon-button" type="button" title="Hide companion" aria-label="Hide companion" onClick={() => void hideCompanion()}><CloseIcon /></button>
+        </div>}
       </header>
       {compact && <div className="companion-drag-grip" role="button" aria-label="Drag companion" title="Drag companion" onPointerDown={startGripDrag} />}
       <section className="floating-body">
         <div className="mini-status"><span>Ready</span><strong>Ask or dictate</strong></div>
         <section className="mini-conversation" aria-label="Recent companion chat">{chat.messages.slice(-4).map((message) => <MessageBubble key={message.id} message={message} />)}</section>
-        <ChatComposer disabled={chat.isLoading} onSend={chat.send} onNewChat={chat.clear} compactBar={compact} />
+        <ChatComposer disabled={chat.isLoading} onSend={chat.send} onNewChat={chat.clear} compactBar={compact} compactAccessory={compact ? compactRestoreButton : undefined} />
       </section>
     </main>
   );
