@@ -50,3 +50,8 @@ export async function getJournalStatus(): Promise<JournalStatus | null> {
   if (!isTauriRuntime()) return null;
   return invoke<JournalStatus>("memory_status");
 }
+
+export async function clearJournal(): Promise<JournalStatus | null> {
+  if (!isTauriRuntime()) return null;
+  return invoke<JournalStatus>("clear_memory");
+}
