@@ -9,6 +9,9 @@ export interface JournalDraft {
   source: string;
   confidence?: number;
   tags?: string[];
+  memoryClass?: string;
+  contentHash?: string;
+  searchHashes?: string[];
   embeddingModel?: string;
   vector?: number[];
 }
@@ -22,6 +25,9 @@ export interface JournalRecord {
   source: string;
   confidence: number;
   tags: string[];
+  memoryClass?: string;
+  contentHash?: string;
+  searchHashes?: string[];
   embeddingModel?: string;
   vector?: number[];
   createdAt: string;
