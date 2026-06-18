@@ -1,12 +1,42 @@
+.companion-window .companion-bar-toggle::before,
 .companion-window .companion-bar-toggle::after {
   content: none !important;
   display: none !important;
 }
 
-.companion-window .companion-bar-toggle::before {
-  transform: translateY(-1px) rotate(45deg) !important;
+.companion-window .companion-window-actions {
+  align-items: center !important;
+  gap: 8px !important;
 }
 
-.companion-bar .companion-bar-toggle::before {
-  transform: translateY(1px) rotate(45deg) !important;
+.companion-window .companion-icon-button {
+  display: grid !important;
+  place-items: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  line-height: 0 !important;
+}
+
+.companion-window .companion-button-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.companion-bar .companion-window-actions {
+  gap: 0 !important;
+}
+
+.companion-bar .companion-icon-button {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
 }
