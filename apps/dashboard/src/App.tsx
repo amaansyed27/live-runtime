@@ -14,9 +14,9 @@ const AUTO_OLLAMA_KEY = "live-runtime.auto-ollama";
 const AUTOMATIONS_KEY = "live-runtime.automations";
 const SKILLS_KEY = "live-runtime.skills";
 const SEARCH_PROVIDER_KEY = "live-runtime.search.provider";
-const COMPANION_COMPACT_SIZE = new LogicalSize(390, 64);
+const COMPANION_COMPACT_SIZE = new LogicalSize(460, 64);
 const COMPANION_EXPANDED_SIZE = new LogicalSize(340, 410);
-const COMPANION_COMPACT_MIN_SIZE = new LogicalSize(340, 64);
+const COMPANION_COMPACT_MIN_SIZE = new LogicalSize(430, 64);
 const COMPANION_EXPANDED_MIN_SIZE = new LogicalSize(300, 92);
 
 type Page = "chat" | "settings" | "automation" | "skills" | "intelligence";
@@ -162,7 +162,7 @@ function CompanionWindow({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) 
       <section className="floating-body">
         <div className="mini-status"><span>Ready</span><strong>Ask or dictate</strong></div>
         <section className="mini-conversation" aria-label="Recent companion chat">{chat.messages.slice(-4).map((message) => <MessageBubble key={message.id} message={message} />)}</section>
-        <ChatComposer disabled={chat.isLoading} onSend={chat.send} onNewChat={chat.clear} />
+        <ChatComposer disabled={chat.isLoading} onSend={chat.send} onNewChat={chat.clear} compactBar={compact} />
       </section>
     </main>
   );
