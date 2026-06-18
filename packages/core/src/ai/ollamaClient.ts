@@ -35,12 +35,14 @@ export class OllamaClient implements AiProvider {
     }
 
     const data = (await response.json()) as OllamaTagsResponse;
-    return (data.models ?? []).map((model) => ({
-      name: model.name,
-      size: model.size,
-      modifiedAt: model.modified_at,
-      family: model.details?.family
-    }));
+    return (data.models ?? [])
+      .filter((model) => model.name && !model.name.toLowerCase().includes(":cloud"))
+      .map((model) => ({
+        name: model.name,
+        size: model.size,
+        modifiedAt: model.modified_at,
+        family: model.details?.family
+      }));
   }
 
   async *chat(request: ChatRequest): AsyncIterable<ChatChunk> {
