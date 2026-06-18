@@ -49,6 +49,7 @@ textarea {
 .chat-page {
   display: flex !important;
   flex-direction: column !important;
+  position: relative;
   min-height: 0;
 }
 
@@ -76,9 +77,7 @@ textarea {
 .settings-grid,
 .automation-layout,
 .skills-layout,
-.intelligence-layout {
-  gap: 0.55rem;
-}
+.intelligence-layout { gap: 0.55rem; }
 
 .settings-card,
 .automation-card,
@@ -95,9 +94,7 @@ textarea {
 .intel-grid article,
 .intel-hero,
 .intel-flow,
-.compact-note {
-  box-shadow: none;
-}
+.compact-note { box-shadow: none; }
 
 .settings-card,
 .automation-card,
@@ -118,16 +115,12 @@ textarea {
 .automation-card + .automation-card,
 .skill-card + .skill-card,
 .intel-grid article + article,
-.compact-note {
-  border-top: 1px solid var(--line);
-}
+.compact-note { border-top: 1px solid var(--line); }
 
 .status-grid,
 .intel-status,
 .skill-grid,
-.intel-grid {
-  gap: 0.52rem;
-}
+.intel-grid { gap: 0.52rem; }
 
 .signal-card,
 .intel-status article {
@@ -135,13 +128,8 @@ textarea {
   background: rgba(20, 29, 26, 0.5);
 }
 
-.compact-note {
-  margin-top: 0.2rem;
-}
-
-.compact-note p {
-  margin-bottom: 0;
-}
+.compact-note { margin-top: 0.2rem; }
+.compact-note p { margin-bottom: 0; }
 
 .signal-card strong,
 .mini-status strong,
@@ -152,10 +140,7 @@ textarea {
 .local-first strong,
 .intel-grid strong,
 .intel-hero strong,
-.compact-note strong {
-  font-size: 0.98rem;
-  line-height: 1.35;
-}
+.compact-note strong { font-size: 0.98rem; line-height: 1.35; }
 
 .settings-card small,
 .automation-card p,
@@ -163,50 +148,79 @@ textarea {
 .intelligence-card p,
 .local-first p,
 .intelligence-status-card small,
-.compact-note p {
-  font-size: 0.86rem;
-  line-height: 1.45;
-}
+.compact-note p { font-size: 0.86rem; line-height: 1.45; }
 
 .composer {
   display: flex !important;
   flex-direction: column !important;
-  gap: 0.65rem !important;
+  gap: 0 !important;
   padding: 0.72rem !important;
 }
 
-.composer-input-wrap { width: 100%; }
-
-.composer-input-wrap textarea {
-  min-height: 5rem !important;
-  max-height: 8rem;
-  font-size: 0.96rem;
+.composer-header-actions {
+  position: absolute;
+  top: 1rem;
+  right: 0.95rem;
+  display: flex;
+  gap: 0.42rem;
 }
 
-.composer-actions,
-.composer-actions-row {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.5rem;
+.composer-header-actions button {
+  width: 2.35rem;
+  height: 2.35rem;
+  min-width: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 1rem;
+  background: rgba(20, 29, 26, 0.72);
+}
+
+.composer-header-actions .active-live {
+  color: #9df5b5;
+  box-shadow: 0 0 0 4px rgba(95, 211, 132, 0.12);
+}
+
+.composer-input-wrap {
+  position: relative;
   width: 100%;
 }
 
-.composer-actions-row button,
-.composer-actions button {
-  width: auto !important;
-  min-width: 5.8rem;
-  height: 2.55rem !important;
-  padding: 0 0.9rem !important;
-  flex: 0 0 auto !important;
+.composer-input-wrap textarea {
+  min-height: 4.6rem !important;
+  max-height: 8rem;
+  font-size: 0.96rem;
+  padding-right: 6.4rem;
 }
 
-.composer-actions-row button[type="submit"],
-.composer-actions button[type="submit"] {
-  background: rgba(24, 49, 38, 0.74);
+.input-inline-actions {
+  position: absolute;
+  right: 0.45rem;
+  bottom: 0.45rem;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.input-inline-actions button {
+  width: 2.35rem !important;
+  min-width: 2.35rem !important;
+  height: 2.35rem !important;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+}
+
+.input-inline-actions button[type="submit"] {
+  background: rgba(24, 49, 38, 0.92);
   color: #fffdf5;
   border-color: transparent;
+}
+
+.live-mode-on .composer-input-wrap {
+  box-shadow: 0 0 0 1px rgba(95, 211, 132, 0.24);
+  border-radius: 0.62rem;
 }
 
 .intel-flow { display: grid; gap: 0.45rem; }
@@ -215,14 +229,8 @@ textarea {
 .intelligence-status-card small,
 .intel-status .wide strong { word-break: break-word; }
 
-.memory-reset {
-  display: grid;
-  gap: 0.44rem;
-}
-
-.memory-reset button {
-  justify-self: start;
-}
+.memory-reset { display: grid; gap: 0.44rem; }
+.memory-reset button { justify-self: start; }
 
 .danger-soft {
   color: #ffc7b8;
