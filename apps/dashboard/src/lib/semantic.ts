@@ -1,3 +1,4 @@
+import { buildMemoryIndex, classifyMemoryDraft } from "@live-runtime/core";
 import { listJournal, saveJournal, type JournalDraft, type JournalRecord } from "./journalBridge";
 
 export const EMBED_MODEL = "nomic-embed-text";
@@ -37,41 +38,81 @@ export async function makeEmbedding(baseUrl: string, input: string, model = EMBE
 }
 
 export async function saveEntry(baseUrl: string, draft: JournalDraft): Promise<void> {
-  const embedding = await makeEmbedding(baseUrl, draft.content);
+  const classified = classifyMemoryDraft(draft);
+  const embedding = classified.classification.shouldEmbed ? await makeEmbedding(baseUrl, classified.draft.content) : null;
   await saveJournal({
-    ...draft,
+    ...classified.draft,
     embeddingModel: embedding ? EMBED_MODEL : undefined,
     vector: embedding ?? undefined
   });
 }
 
 export async function relatedEntries(baseUrl: string, query: string, limit = 6): Promise<ScoredJournalRecord[]> {
-  const records = await listJournal(160);
+  const records = await listJournal(500);
+  const queryIndex = buildMemoryIndex(query);
   const queryEmbedding = await makeEmbedding(baseUrl, query);
-  if (!queryEmbedding) return keywordSearch(records, query, limit);
+
+  const lexicalMatches = indexedSearch(records, query, queryIndex, Math.max(limit * 3, 12));
+  if (!queryEmbedding) return lexicalMatches.slice(0, limit);
 
   const semanticMatches = records
     .filter((record) => Array.isArray(record.vector) && record.vector.length === queryEmbedding.length)
     .map((record) => ({ record, score: cosine(queryEmbedding, record.vector ?? []) }))
-    .filter((item) => item.score > 0.18)
+    .filter((item) => item.score > 0.18);
+
+  return mergeScores(semanticMatches, lexicalMatches)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
-
-  return semanticMatches.length > 0 ? semanticMatches : keywordSearch(records, query, limit);
 }
 
-function keywordSearch(records: JournalRecord[], query: string, limit: number): ScoredJournalRecord[] {
-  const terms = query.toLowerCase().split(/\s+/).filter((term) => term.length > 2);
-  if (terms.length === 0) return [];
+function indexedSearch(records: JournalRecord[], query: string, queryIndex: ReturnType<typeof buildMemoryIndex>, limit: number): ScoredJournalRecord[] {
+  const queryTerms = new Set(queryIndex.terms);
+  const queryHashes = new Set(queryIndex.termHashes);
+  const queryTopics = new Set(queryIndex.topics);
+  if (queryTerms.size === 0 && queryHashes.size === 0) return [];
+
   return records
-    .map((record) => {
-      const haystack = `${record.title} ${record.content} ${record.tags.join(" ")}`.toLowerCase();
-      const matches = terms.filter((term) => haystack.includes(term)).length;
-      return { record, score: matches / terms.length };
-    })
+    .map((record) => ({ record, score: scoreRecord(record, query, queryTerms, queryHashes, queryTopics) }))
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
+}
+
+function scoreRecord(record: JournalRecord, query: string, queryTerms: Set<string>, queryHashes: Set<string>, queryTopics: Set<string>): number {
+  const haystack = `${record.title} ${record.content} ${record.tags.join(" ")}`.toLowerCase();
+  const recordHashes = new Set([...(record.searchHashes ?? []), ...record.tags.filter((tag) => tag.startsWith("term:")).map((tag) => tag.slice(5))]);
+  const recordTopics = new Set(record.tags.filter((tag) => tag.startsWith("topic:")).map((tag) => tag.slice(6)));
+  let score = 0;
+
+  for (const term of queryTerms) {
+    if (haystack.includes(term)) score += 0.16;
+  }
+
+  for (const hash of queryHashes) {
+    if (recordHashes.has(hash)) score += 0.24;
+  }
+
+  for (const topic of queryTopics) {
+    if (recordTopics.has(topic)) score += 0.22;
+  }
+
+  if (record.contentHash && haystack.includes(query.toLowerCase().trim())) score += 0.18;
+  if (record.memoryClass === "preference" && /prefer|always|remember|from now on/i.test(query)) score += 0.18;
+  if (record.memoryClass === "projectMemory" && /project|repo|branch|bug|architecture|component/i.test(query)) score += 0.15;
+  return Math.min(1, score);
+}
+
+function mergeScores(semanticMatches: ScoredJournalRecord[], lexicalMatches: ScoredJournalRecord[]): ScoredJournalRecord[] {
+  const byId = new Map<string, ScoredJournalRecord>();
+  for (const item of semanticMatches) {
+    byId.set(item.record.id, { record: item.record, score: item.score * 0.72 });
+  }
+  for (const item of lexicalMatches) {
+    const current = byId.get(item.record.id);
+    if (current) current.score = Math.min(1, current.score + item.score * 0.42);
+    else byId.set(item.record.id, { record: item.record, score: item.score * 0.9 });
+  }
+  return Array.from(byId.values());
 }
 
 function isSameModel(candidate: string, expected: string): boolean {
