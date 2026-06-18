@@ -5,3 +5,4 @@ export * from "./settings/defaults";
 export * from "./voice/browserSpeech";
 export * from "./web/search";
 export * from "./memory/schema";
+export * from "./memory/classifier";
