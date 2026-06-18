@@ -1,5 +1,6 @@
-export type MemoryKind = "chat" | "preference" | "fact" | "routine" | "skill" | "web" | "document";
-export type MemoryScope = "session" | "longTerm" | "profile" | "skill";
+export type MemoryKind = "chat" | "chatSession" | "preference" | "fact" | "routine" | "skill" | "web" | "document" | "action" | "project";
+export type MemoryScope = "session" | "longTerm" | "profile" | "skill" | "project";
+export type MemoryClass = "chatHistory" | "preference" | "projectMemory" | "actionRequest" | "skillCandidate";
 export type SkillStatus = "draft" | "learning" | "ready" | "disabled";
 
 export interface MemoryRecord {
@@ -13,6 +14,9 @@ export interface MemoryRecord {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  memoryClass?: MemoryClass;
+  contentHash?: string;
+  searchHashes?: string[];
   embeddingModel?: string;
   vector?: number[];
 }
@@ -48,6 +52,7 @@ export interface RetrievalQuery {
   text: string;
   kinds?: MemoryKind[];
   scopes?: MemoryScope[];
+  classes?: MemoryClass[];
   limit?: number;
   minConfidence?: number;
 }
