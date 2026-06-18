@@ -23,7 +23,7 @@ const cases: ClassifierCase[] = [
   },
   {
     name: "memory architecture",
-    input: "Add a memory-history classifier with fast hash indexes and DB-level retrieval.",
+    input: "Memory architecture: add a memory-history classifier with fast hash indexes and DB-level retrieval.",
     expectedClass: "projectMemory",
     expectedDynamicClass: "memory-indexing",
     expectedTopic: "memory"
@@ -36,7 +36,7 @@ const cases: ClassifierCase[] = [
   },
   {
     name: "reusable workflow",
-    input: "Every time I open this project, run npm run desktop and watch the logs.",
+    input: "Every time I open this repo, start the desktop workflow and watch the logs.",
     expectedClass: "skillCandidate",
     expectedDynamicClass: "repo-workflow"
   },
