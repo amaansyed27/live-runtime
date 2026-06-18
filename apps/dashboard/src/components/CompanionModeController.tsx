@@ -10,6 +10,11 @@ const CHEVRON_DOWN_ICON = `<svg viewBox="0 0 20 20" aria-hidden="true" focusable
 const CHEVRON_UP_ICON = `<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5.5 12.5 10 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
 
 const COMPANION_DOCK_CSS = `
+.companion-window,
+.companion-window * {
+  -webkit-app-region: no-drag;
+}
+
 .companion-window .floating-titlebar,
 .companion-window .titlebar-actions,
 .companion-window .titlebar-actions button,
@@ -87,7 +92,7 @@ const COMPANION_DOCK_CSS = `
   height: 64px !important;
   min-height: 64px !important;
   max-height: 64px !important;
-  padding: 8px !important;
+  padding: 8px 8px 8px 38px !important;
   margin: 0 !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
@@ -173,12 +178,34 @@ const COMPANION_DOCK_CSS = `
 }
 
 .floating-panel.companion-bar .companion-drag-grip {
-  display: block;
+  display: flex;
   position: absolute;
-  inset: 0 auto 0 0;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
   width: 24px;
   z-index: 80;
   cursor: grab;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(185, 237, 206, .16);
+  background: rgba(12, 19, 17, .42);
+}
+
+.floating-panel.companion-bar .companion-drag-grip::before {
+  content: "";
+  width: 3px;
+  height: 18px;
+  border-radius: 999px;
+  background: currentColor;
+  color: rgba(232, 247, 236, .55);
+  box-shadow: 6px 0 0 currentColor;
+  transform: translateX(-3px);
+}
+
+.floating-panel.companion-bar .companion-drag-grip:active {
+  cursor: grabbing;
 }
 `;
 
@@ -193,6 +220,18 @@ function setToggleIcon(button: HTMLButtonElement, compact: boolean) {
 function isInteractiveTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
   return Boolean(target.closest("button, textarea, input, select, a, [role='button'], .titlebar-actions, .composer-input-wrap, .input-inline-actions, .composer-header-actions"));
+}
+
+function clearNativeDragRegions(panel: HTMLElement) {
+  panel.querySelectorAll<HTMLElement>("[data-tauri-drag-region]").forEach((element) => {
+    element.removeAttribute("data-tauri-drag-region");
+  });
+}
+
+function startCompanionDrag() {
+  void getCurrentWindow().startDragging().catch((error) => {
+    console.warn("Unable to drag companion window", error);
+  });
 }
 
 export function CompanionModeController() {
@@ -226,6 +265,7 @@ export function CompanionModeController() {
       compact = !panel.classList.contains("companion-bar");
       panel.classList.toggle("companion-bar", compact);
       setToggleIcon(button, compact);
+      clearNativeDragRegions(panel);
       void resizeWindow(compact);
     }
 
@@ -235,6 +275,8 @@ export function CompanionModeController() {
       const titlebar = document.querySelector<HTMLElement>(".floating-titlebar");
       const actions = document.querySelector<HTMLElement>(".floating-titlebar .titlebar-actions");
       if (!panel || !titlebar || !actions) return;
+
+      clearNativeDragRegions(panel);
 
       let button = actions.querySelector<HTMLButtonElement>(".companion-bar-toggle");
       if (!button) {
@@ -247,7 +289,7 @@ export function CompanionModeController() {
       button.onclick = (event) => {
         event.preventDefault();
         event.stopPropagation();
-        event.nativeEvent?.stopImmediatePropagation?.();
+        event.stopImmediatePropagation();
         toggle(panel, button);
       };
 
@@ -256,7 +298,7 @@ export function CompanionModeController() {
         titlebar.addEventListener("pointerdown", (event) => {
           if (event.button !== 0) return;
           if (isInteractiveTarget(event.target)) return;
-          void getCurrentWindow().startDragging();
+          startCompanionDrag();
         });
       }
 
@@ -265,6 +307,7 @@ export function CompanionModeController() {
         grip = document.createElement("div");
         grip.className = "companion-drag-grip";
         grip.title = "Drag companion";
+        grip.setAttribute("aria-label", "Drag companion");
         panel.prepend(grip);
       }
 
@@ -272,7 +315,9 @@ export function CompanionModeController() {
         grip.dataset.companionDragWired = "true";
         grip.addEventListener("pointerdown", (event) => {
           if (event.button !== 0) return;
-          void getCurrentWindow().startDragging();
+          event.preventDefault();
+          event.stopPropagation();
+          startCompanionDrag();
         });
       }
     }
