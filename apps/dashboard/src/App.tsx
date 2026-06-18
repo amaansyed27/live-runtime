@@ -109,8 +109,8 @@ export function App() {
 function CompanionWindow({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) {
   return (
     <main className="floating-panel companion-window">
-      <header className="floating-titlebar" data-tauri-drag-region>
-        <Brand label="Companion" compact />
+      <header className="floating-titlebar companion-titlebar">
+        <Brand label="Companion" compact draggable={false} />
         <div className="titlebar-actions">
           <button className="companion-bar-toggle" type="button" title="Compact companion" aria-label="Compact companion">⌄</button>
           <button type="button" title="Hide companion" onClick={() => void hideCompanion()}>×</button>
@@ -125,8 +125,14 @@ function CompanionWindow({ chat }: { chat: ReturnType<typeof useRuntimeChat> }) 
   );
 }
 
-function Brand({ label, compact = false }: { label: string; compact?: boolean }) {
-  return <div className={`brand-block ${compact ? "brand-compact" : ""}`} data-tauri-drag-region><img className="brand-mark" src="/live-runtime-logo.svg" alt="Live Runtime logo" /><div><p>{label}</p><small>Local AI</small></div></div>;
+function Brand({ label, compact = false, draggable = true }: { label: string; compact?: boolean; draggable?: boolean }) {
+  const dragProps = draggable ? { "data-tauri-drag-region": "" } : {};
+  return (
+    <div className={`brand-block ${compact ? "brand-compact" : ""}`} {...dragProps}>
+      <img className="brand-mark" src="/live-runtime-logo.svg" alt="Live Runtime logo" />
+      <div><p>{label}</p><small>Local AI</small></div>
+    </div>
+  );
 }
 
 function Tip({ text }: { text: string }) { return <span className="tip" title={text}>?</span>; }
