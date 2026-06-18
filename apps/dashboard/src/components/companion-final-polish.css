@@ -32,19 +32,18 @@
 }
 
 .companion-bar .floating-titlebar .titlebar-actions {
-  top: 50% !important;
-  right: 8px !important;
-  transform: translateY(-50%) !important;
+  display: none !important;
 }
 
 .companion-bar .floating-body {
-  padding: 8px 50px 8px 46px !important;
+  padding: 8px 10px 8px 46px !important;
 }
 
 .companion-bar .composer.composer-compact-bar {
-  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  grid-template-columns: auto minmax(210px, 1fr) auto !important;
   align-items: center !important;
   gap: 8px !important;
+  overflow: hidden !important;
 }
 
 .companion-bar .composer-header-actions {
@@ -54,11 +53,12 @@
 
 .companion-bar .composer-compact-bar .composer-input-wrap {
   grid-column: 2 !important;
+  min-width: 0 !important;
   overflow: hidden !important;
 }
 
 .companion-bar .composer-compact-bar .composer-input-wrap textarea {
-  padding: 14px 14px 12px 14px !important;
+  padding: 14px 16px 12px 16px !important;
 }
 
 .companion-bar .composer-compact-bar .input-inline-actions {
@@ -95,16 +95,13 @@
 }
 
 .companion-bar .input-inline-actions button[aria-label="Dictate"],
-.companion-bar .input-inline-actions button[type="submit"] {
+.companion-bar .input-inline-actions button[type="submit"],
+.companion-bar .input-inline-actions .companion-bar-toggle {
   transform: none !important;
 }
 
-.companion-bar .companion-window-actions {
-  gap: 0 !important;
-}
-
-.companion-bar .companion-bar-toggle {
-  margin-left: 0 !important;
+.companion-bar .input-inline-actions .companion-bar-toggle {
+  margin: 0 !important;
 }
 
 .companion-bar .companion-drag-grip {
