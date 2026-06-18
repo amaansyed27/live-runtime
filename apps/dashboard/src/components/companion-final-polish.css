@@ -1,0 +1,12 @@
+.companion-window .companion-bar-toggle::after {
+  content: none !important;
+  display: none !important;
+}
+
+.companion-window .companion-bar-toggle::before {
+  transform: translateY(-1px) rotate(45deg) !important;
+}
+
+.companion-bar .companion-bar-toggle::before {
+  transform: translateY(1px) rotate(45deg) !important;
+}
