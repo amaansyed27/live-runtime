@@ -182,6 +182,16 @@ textarea {
   box-shadow: 0 0 0 4px rgba(95, 211, 132, 0.12);
 }
 
+.composer button svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .composer-input-wrap {
   position: relative;
   width: 100%;
@@ -218,9 +228,43 @@ textarea {
   border-color: transparent;
 }
 
-.live-mode-on .composer-input-wrap {
-  box-shadow: 0 0 0 1px rgba(95, 211, 132, 0.24);
-  border-radius: 0.62rem;
+.live-mode-surface {
+  min-height: 8.8rem;
+  border: 1px solid rgba(116, 218, 149, 0.2);
+  border-radius: 0.9rem;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 0.25rem;
+  background: radial-gradient(circle at 50% 45%, rgba(80, 184, 113, 0.16), rgba(14, 20, 18, 0.55) 58%);
+  overflow: hidden;
+}
+
+.live-orb {
+  width: 4.6rem;
+  height: 4.6rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle, rgba(155, 255, 187, 0.82), rgba(72, 173, 105, 0.18) 52%, transparent 68%);
+  animation: liveBreath 2.4s ease-in-out infinite;
+}
+
+.live-orb span {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  background: rgba(207, 255, 222, 0.95);
+  box-shadow: 0 0 32px rgba(118, 255, 162, 0.48);
+}
+
+.live-mode-surface strong { font-size: 1rem; }
+.live-mode-surface small { max-width: 18rem; color: var(--muted); line-height: 1.4; }
+.live-mode-on .composer-input-wrap { box-shadow: 0 0 0 1px rgba(95, 211, 132, 0.24); border-radius: 0.62rem; }
+
+@keyframes liveBreath {
+  0%, 100% { transform: scale(0.92); opacity: 0.72; filter: blur(0); }
+  50% { transform: scale(1.08); opacity: 1; filter: blur(0.2px); }
 }
 
 .intel-flow { display: grid; gap: 0.45rem; }
