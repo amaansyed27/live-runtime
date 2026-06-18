@@ -8,6 +8,7 @@ const MODEL_KEY = "live-runtime.chat.model";
 const BASE_URL_KEY = "live-runtime.chat.base-url";
 const SPEAK_KEY = "live-runtime.chat.speak";
 const SESSION_META_KEY = "live-runtime.chat.session-meta";
+const CHAT_BUS = "live-runtime.chat.bus";
 const RETRIEVAL_TIMEOUT_MS = 1200;
 const IDLE_ARCHIVE_MS = 120 * 60 * 1000;
 const CONTEXT_TOKEN_LIMIT = 250000;
@@ -45,6 +46,7 @@ export function useRuntimeChat(): RuntimeChatState {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const channelRef = useRef<BroadcastChannel | null>(null);
   const client = useMemo(() => new OllamaClient({ baseUrl }), [baseUrl]);
 
   const setModel = useCallback((value: string) => {
@@ -62,7 +64,28 @@ export function useRuntimeChat(): RuntimeChatState {
     window.localStorage.setItem(SPEAK_KEY, String(value));
   }, []);
 
-  useEffect(() => window.localStorage.setItem(KEY, JSON.stringify(messages)), [messages]);
+  const syncFromStore = useCallback(() => {
+    if (isLoading) return;
+    const next = readStoredMessages();
+    setMessages((current) => sameMessages(current, next) ? current : next);
+  }, [isLoading]);
+
+  useEffect(() => {
+    const channel = new BroadcastChannel(CHAT_BUS);
+    channel.onmessage = syncFromStore;
+    channelRef.current = channel;
+    const timer = window.setInterval(syncFromStore, 900);
+    return () => {
+      window.clearInterval(timer);
+      channel.close();
+      if (channelRef.current === channel) channelRef.current = null;
+    };
+  }, [syncFromStore]);
+
+  useEffect(() => {
+    window.localStorage.setItem(KEY, JSON.stringify(messages));
+    channelRef.current?.postMessage({ type: "messages" });
+  }, [messages]);
 
   useEffect(() => {
     const meta = readSessionMeta();
@@ -70,10 +93,11 @@ export function useRuntimeChat(): RuntimeChatState {
     if (Date.now() - meta.lastMessageAt < IDLE_ARCHIVE_MS) return;
 
     void archiveSession(baseUrl, messages, "idle-120-minutes").then(() => {
-      const fresh = [createMessage("assistant", "Previous idle chat was archived into long-term memory. New chat started.")];
+      const fresh = [createMessage("assistant", "Previous idle chat was archived into long-term memory. New topic started.")];
       setMessages(fresh);
       window.localStorage.setItem(KEY, JSON.stringify(fresh));
       writeSessionMeta(Date.now());
+      channelRef.current?.postMessage({ type: "messages" });
     });
   }, [baseUrl]);
 
@@ -145,7 +169,7 @@ export function useRuntimeChat(): RuntimeChatState {
 
       const finalMessages = [...history, userMessage, { ...assistantMessage, content: reply }];
       writeSessionMeta(Date.now());
-      void archiveIfContextLimitReached(baseUrl, finalMessages, setMessages);
+      void archiveIfContextLimitReached(baseUrl, finalMessages, setMessages, channelRef.current);
       if (speakResponses) await speakText(reply);
     } catch (cause) {
       if (!abort.signal.aborted) {
@@ -159,29 +183,32 @@ export function useRuntimeChat(): RuntimeChatState {
   }, [baseUrl, client, isLoading, messages, model, speakResponses]);
 
   const clear = useCallback(() => {
-    const fresh = [createMessage("assistant", "New chat started. What should we work on?")];
+    const fresh = [createMessage("assistant", "New topic started. What should we work on?")];
     setMessages(fresh);
     window.localStorage.setItem(KEY, JSON.stringify(fresh));
     writeSessionMeta(Date.now());
+    channelRef.current?.postMessage({ type: "messages" });
   }, []);
 
   const resetAll = useCallback(() => {
     Object.keys(window.localStorage)
       .filter((key) => key.startsWith("live-runtime."))
       .forEach((key) => window.localStorage.removeItem(key));
+    channelRef.current?.postMessage({ type: "messages" });
     window.location.reload();
   }, []);
 
   return { messages, models, model, baseUrl, isLoading, error, speakResponses, setModel, setBaseUrl, setSpeakResponses, reloadModels, send, clear, resetAll };
 }
 
-async function archiveIfContextLimitReached(baseUrl: string, currentMessages: ChatMessage[], setMessages: (messages: ChatMessage[]) => void): Promise<void> {
+async function archiveIfContextLimitReached(baseUrl: string, currentMessages: ChatMessage[], setMessages: (messages: ChatMessage[]) => void, channel: BroadcastChannel | null): Promise<void> {
   if (estimateTokens(currentMessages) < CONTEXT_TOKEN_LIMIT) return;
   await archiveSession(baseUrl, currentMessages, "context-250k");
   const fresh = [createMessage("assistant", "Context limit reached. I archived the previous chat into long-term memory and started fresh.")];
   setMessages(fresh);
   window.localStorage.setItem(KEY, JSON.stringify(fresh));
   writeSessionMeta(Date.now());
+  channel?.postMessage({ type: "messages" });
 }
 
 async function archiveSession(baseUrl: string, items: ChatMessage[], reason: string): Promise<void> {
@@ -210,12 +237,17 @@ function summarizeNotes(items: ScoredJournalRecord[]): string {
 function readStoredMessages(): ChatMessage[] {
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return [createMessage("assistant", "Live Runtime is ready. Start Ollama, choose a chat model, then speak or type a message.")];
+    if (!raw) return [createMessage("assistant", "Live Runtime is ready. Choose a model, then speak or type a message.")];
     const parsed = JSON.parse(raw) as ChatMessage[];
     return Array.isArray(parsed) && parsed.length > 0 ? parsed : [createMessage("assistant", "Live Runtime is ready.")];
   } catch {
     return [createMessage("assistant", "Live Runtime is ready.")];
   }
+}
+
+function sameMessages(left: ChatMessage[], right: ChatMessage[]): boolean {
+  if (left.length !== right.length) return false;
+  return left.every((message, index) => message.id === right[index]?.id && message.content === right[index]?.content);
 }
 
 function hasRealConversation(items: ChatMessage[]): boolean {
