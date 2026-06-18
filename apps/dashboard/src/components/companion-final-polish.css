@@ -38,7 +38,7 @@
 }
 
 .companion-bar .floating-body {
-  padding: 8px 82px 8px 46px !important;
+  padding: 8px 92px 8px 46px !important;
 }
 
 .companion-bar .composer {
@@ -76,6 +76,23 @@
   bottom: 50% !important;
   transform: translateY(50%) !important;
   align-items: center !important;
+}
+
+.companion-bar .input-inline-actions button[aria-label="Dictate"] {
+  transform: translateX(1px) !important;
+}
+
+.companion-bar .input-inline-actions button[type="submit"] {
+  transform: translateX(0) !important;
+}
+
+.companion-bar .companion-window-actions {
+  right: 8px !important;
+  gap: 0 !important;
+}
+
+.companion-bar .companion-bar-toggle {
+  margin-left: 0 !important;
 }
 
 .companion-bar .companion-drag-grip {
