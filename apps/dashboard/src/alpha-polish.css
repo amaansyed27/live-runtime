@@ -4,7 +4,8 @@ input, select, textarea { border-radius: 0.52rem; padding: 0.72rem 0.82rem; }
 .desktop-frame, .floating-panel { background: linear-gradient(180deg, rgba(21,31,27,.98), rgba(10,15,13,.98)); border-color: rgba(118,190,151,.22); }
 .custom-titlebar, .floating-titlebar { padding: .55rem .7rem; background: rgba(12,18,16,.72); }
 .floating-titlebar .titlebar-actions { flex-shrink: 0; margin-left: auto; }
-.floating-titlebar .brand-block { min-width: 0; max-width: calc(100% - 5rem); }
+.floating-titlebar .brand-block { min-width: 0; max-width: calc(100% - 7.5rem); }
+.companion-bar-toggle { color: #dcfbe5; }
 .brand-block p { font-size: 1rem; }
 .brand-block small { font-size: .73rem; }
 .app-body { gap: .62rem; padding: .64rem; }
@@ -34,7 +35,8 @@ input, select, textarea { border-radius: 0.52rem; padding: 0.72rem 0.82rem; }
 .settings-card small, .automation-card p, .skill-card p, .intelligence-card p, .local-first p, .intelligence-status-card small, .compact-note p { font-size: .86rem; line-height: 1.45; }
 .composer { display: flex !important; flex-direction: column !important; gap: 0 !important; padding: .72rem !important; }
 .composer-header-actions { position: absolute; top: 1rem; right: .95rem; display: flex; gap: .42rem; }
-.floating-panel .composer-header-actions { position: static; display: flex; justify-content: flex-end; margin: 0 0 .5rem; }
+.floating-body { position: relative; }
+.floating-panel:not(.companion-bar) .composer-header-actions { position: absolute; top: 1rem; right: 1rem; z-index: 4; margin: 0; }
 .composer-header-actions button { width: 2.35rem; height: 2.35rem; min-width: 0; padding: 0; display: grid; place-items: center; border-radius: 999px; font-size: 1rem; background: rgba(20,29,26,.72); }
 .composer-header-actions .active-live { color: #9df5b5; box-shadow: 0 0 0 4px rgba(95,211,132,.12); }
 .composer button svg { width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -43,13 +45,31 @@ input, select, textarea { border-radius: 0.52rem; padding: 0.72rem 0.82rem; }
 .input-inline-actions { position: absolute; right: .45rem; bottom: .45rem; display: flex; gap: .35rem; }
 .input-inline-actions button { width: 2.35rem !important; min-width: 2.35rem !important; height: 2.35rem !important; padding: 0 !important; display: grid; place-items: center; border-radius: 999px; }
 .input-inline-actions button[type="submit"] { background: rgba(24,49,38,.92); color: #fffdf5; border-color: transparent; }
-.live-mode-surface { min-height: 8.8rem; border: 1px solid rgba(116,218,149,.2); border-radius: .9rem; display: grid; place-items: center; text-align: center; gap: .25rem; background: radial-gradient(circle at 50% 45%, rgba(80,184,113,.16), rgba(14,20,18,.55) 58%); overflow: hidden; }
+.live-mode-surface { position: relative; min-height: 8.8rem; border: 1px solid transparent; border-radius: .9rem; display: grid; place-items: center; text-align: center; gap: .25rem; background: linear-gradient(rgba(14,20,18,.72), rgba(14,20,18,.72)) padding-box, conic-gradient(from 0deg, rgba(85,229,132,.12), rgba(130,255,174,.86), rgba(77,188,113,.2), rgba(85,229,132,.12)) border-box; overflow: hidden; animation: liveBorderFlow 3.6s linear infinite; }
 .live-orb { width: 4.6rem; height: 4.6rem; border-radius: 999px; display: grid; place-items: center; background: radial-gradient(circle, rgba(155,255,187,.82), rgba(72,173,105,.18) 52%, transparent 68%); animation: liveBreath 2.4s ease-in-out infinite; }
 .live-orb span { width: 1.7rem; height: 1.7rem; border-radius: 999px; background: rgba(207,255,222,.95); box-shadow: 0 0 32px rgba(118,255,162,.48); }
 .live-mode-surface strong { font-size: 1rem; }
 .live-mode-surface small { max-width: 18rem; color: var(--muted); line-height: 1.4; }
-.live-mode-on .composer-input-wrap { box-shadow: 0 0 0 1px rgba(95,211,132,.24); border-radius: .62rem; }
 @keyframes liveBreath { 0%, 100% { transform: scale(.92); opacity: .72; filter: blur(0); } 50% { transform: scale(1.08); opacity: 1; filter: blur(.2px); } }
+@keyframes liveBorderFlow { to { filter: hue-rotate(18deg); } }
+.companion-bar { width: 360px !important; min-height: 0 !important; height: auto !important; border-radius: 1rem; background: rgba(12,18,16,.44); backdrop-filter: blur(22px) saturate(1.3); -webkit-backdrop-filter: blur(22px) saturate(1.3); }
+.companion-bar .floating-titlebar { position: absolute; inset: 0 0 auto 0; height: 0; padding: 0; background: transparent; border: 0; z-index: 9; }
+.companion-bar .brand-block, .companion-bar .floating-titlebar .titlebar-actions button:not(.companion-bar-toggle) { display: none !important; }
+.companion-bar .floating-titlebar .titlebar-actions { position: absolute; right: .35rem; top: .35rem; }
+.companion-bar .companion-bar-toggle { opacity: 0; transform: translateY(-.25rem); transition: opacity .16s ease, transform .16s ease; background: rgba(20,29,26,.65); }
+.companion-bar:hover .companion-bar-toggle { opacity: 1; transform: translateY(0); }
+.companion-bar .floating-body { padding: .55rem; }
+.companion-bar .mini-status, .companion-bar .mini-conversation { display: none !important; }
+.companion-bar .composer { padding: 0 !important; display: grid !important; grid-template-columns: auto 1fr; gap: .42rem !important; align-items: center; }
+.companion-bar .composer-header-actions { position: static !important; grid-column: 1; display: flex; gap: .35rem; margin: 0; }
+.companion-bar .composer-input-wrap { grid-column: 2; border: 1px solid rgba(180,244,200,.16); border-radius: .88rem; background: rgba(12,18,16,.38); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.companion-bar .composer-input-wrap textarea { min-height: 3rem !important; height: 3rem; padding: .72rem 5.7rem .72rem .82rem; background: transparent; }
+.companion-bar .input-inline-actions button, .companion-bar .composer-header-actions button { width: 2.15rem !important; min-width: 2.15rem !important; height: 2.15rem !important; }
+.companion-bar .live-mode-surface { grid-column: 2; min-height: 3.4rem; padding: .2rem .8rem; grid-auto-flow: column; justify-content: start; }
+.companion-bar .live-orb { width: 2.5rem; height: 2.5rem; }
+.companion-bar .live-orb span { width: .95rem; height: .95rem; }
+.companion-bar .live-mode-surface strong { font-size: .9rem; }
+.companion-bar .live-mode-surface small { display: none; }
 .intel-flow { display: grid; gap: .45rem; }
 .intel-flow span { border-radius: 999px; }
 .compact-note p, .intelligence-status-card small, .intel-status .wide strong { word-break: break-word; }
