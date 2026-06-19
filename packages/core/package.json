@@ -12,7 +12,8 @@
   "scripts": {
     "check": "tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json --noEmit",
-    "test:classifier": "tsx src/memory/classifier.test.ts"
+    "test:classifier": "tsx src/memory/classifier.test.ts",
+    "test:control": "tsx src/control/control.test.ts"
   },
   "devDependencies": {
     "tsx": "^4.19.4",
