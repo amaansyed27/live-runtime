@@ -6,3 +6,7 @@ export * from "./voice/browserSpeech";
 export * from "./web/search";
 export * from "./memory/schema";
 export * from "./memory/classifier";
+export * from "./control/schema";
+export * from "./control/registry";
+export * from "./control/policy";
+export * from "./control/audit";
