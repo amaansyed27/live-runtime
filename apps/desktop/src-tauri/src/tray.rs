@@ -17,7 +17,7 @@ pub fn setup(app: &mut App) -> tauri::Result<()> {
             "open_dashboard" => show_window(app, "main"),
             "toggle_companion" => toggle_window(app, "companion"),
             "speak_status" => {
-                let _ = crate::speech::speak("Live Runtime is running. Ollama provider is configured locally.");
+                let _ = crate::speech::speak("Live Runtime is running. Ollama provider is configured locally.", None);
             }
             "quit" => app.exit(0),
             _ => {}
