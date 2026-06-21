@@ -5,6 +5,7 @@ import { ChatComposer } from "./components/ChatComposer";
 import { IntelligenceStatus } from "./components/IntelligenceStatus";
 import { MessageBubble } from "./components/MessageBubble";
 import { SignalCard } from "./components/SignalCard";
+import { ControlPage } from "./pages/ControlPage";
 import { getRuntimeStatus, hideCompanion, hideToTray, readVoiceSettings, showCompanion, speakText, stopSpeech, writeVoiceSettings } from "./lib/tauriBridge";
 import { useRuntimeChat } from "./hooks/useRuntimeChat";
 
@@ -20,7 +21,7 @@ const COMPANION_EXPANDED_SIZE = new LogicalSize(340, 410);
 const COMPANION_COMPACT_MIN_SIZE = new LogicalSize(480, 64);
 const COMPANION_EXPANDED_MIN_SIZE = new LogicalSize(300, 92);
 
-type Page = "chat" | "settings" | "automation" | "skills" | "intelligence";
+type Page = "chat" | "settings" | "automation" | "skills" | "intelligence" | "control";
 type ThemeMode = "system" | "light" | "dark";
 
 interface AutomationItem {
@@ -108,12 +109,13 @@ export function App() {
         </div>
       </header>
       <section className="app-body">
-        <nav className="page-rail page-rail-five" aria-label="Main sections">
+        <nav className="page-rail page-rail-six" aria-label="Main sections">
           <button className={page === "chat" ? "active" : ""} type="button" title="Chat" onClick={() => setPage("chat")}>Chat</button>
           <button className={page === "settings" ? "active" : ""} type="button" title="Settings" onClick={() => setPage("settings")}>Settings</button>
           <button className={page === "automation" ? "active" : ""} type="button" title="Scheduled prompts" onClick={() => setPage("automation")}>Routines</button>
           <button className={page === "skills" ? "active" : ""} type="button" title="Learned capabilities" onClick={() => setPage("skills")}>Skills</button>
           <button className={page === "intelligence" ? "active" : ""} type="button" title="Personal memory engine" onClick={() => setPage("intelligence")}>Intelligence</button>
+          <button className={page === "control" ? "active" : ""} type="button" title="Computer control" onClick={() => setPage("control")}>Control</button>
         </nav>
         {page === "chat" && <ChatPage chat={chat} />}
         {page === "settings" && (
@@ -138,6 +140,7 @@ export function App() {
         {page === "automation" && <AutomationPage automations={automations} setAutomations={setAutomations} draft={automationDraft} setDraft={setAutomationDraft} />}
         {page === "skills" && <SkillsPage skills={skills} setSkills={setSkills} searchProvider={searchProvider} setSearchProvider={setSearchProvider} />}
         {page === "intelligence" && <IntelligencePage baseUrl={chat.baseUrl} />}
+        {page === "control" && <ControlPage />}
       </section>
     </main>
   );
