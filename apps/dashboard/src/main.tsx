@@ -9,6 +9,7 @@ import "./voice-settings.css";
 import "./alpha-polish.css";
 import "./components/companion-window.css";
 import "./components/companion-final-polish.css";
+import "./pages/control-page.css";
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
